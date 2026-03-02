@@ -1,0 +1,78 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.star {
+  display: block;
+  flex-shrink: 0;
+}
+
+.text {
+  display: inline-flex;
+  align-items: center;
+}
+
+.starrow {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  color: #2F65AE;
+  letter-spacing: -0.02em;
+}
+
+.crm {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  color: #4FB6C2;
+  letter-spacing: -0.02em;
+}
+
+/* variante light — para fondos oscuros */
+.light .starrow {
+  color: #ffffff;
+}
+
+.light .crm {
+  color: #4FB6C2;
+}
+
+/* sm — header */
+.sm .star {
+  height: 28px;
+  width: 30px;
+  margin-right: 4px;
+}
+.sm .starrow {
+  font-size: 18px;
+}
+.sm .crm {
+  font-size: 20px;
+}
+
+/* md — por defecto */
+.md .star {
+  height: 36px;
+  width: 39px;
+  margin-right: 10px;
+}
+.md .starrow {
+  font-size: 23px;
+}
+.md .crm {
+  font-size: 26px;
+}
+
+/* lg — pantalla de login */
+.lg .star {
+  height: 56px;
+  width: 61px;
+  margin-right: 6px;
+}
+.lg .starrow {
+  font-size: 36px;
+}
+.lg .crm {
+  font-size: 40px;
+}

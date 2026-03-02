@@ -1,0 +1,33 @@
+.wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+  background-color: var(--color-bg);
+  gap: var(--spacing-xl);
+}
+
+.logoWrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: 440px;
+}
+
+.card {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-2xl);
+  width: 100%;
+  max-width: 440px;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+  }
+}
