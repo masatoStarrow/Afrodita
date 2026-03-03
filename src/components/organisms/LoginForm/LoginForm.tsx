@@ -1,6 +1,8 @@
+import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 import { FormField } from '@components/molecules/FormField'
 import { AlertMessage } from '@components/molecules/AlertMessage'
 import { Button } from '@components/atoms/Button'
@@ -10,30 +12,54 @@ import { ROUTES } from '@constants/routes.constants'
 import { loginSchema, type LoginFormValues } from './LoginForm.schema'
 import styles from './LoginForm.module.css'
 
+const getErrorMessage = (error: unknown): string => {
+  if (axios.isAxiosError(error)) {
+    const status = error.response?.status
+    const code   = error.response?.data?.error?.code
+
+    if (status === 429 || code === 'RATE_LIMIT_EXCEEDED') {
+      return 'Demasiados intentos fallidos. Espera un minuto antes de intentarlo de nuevo.'
+    }
+    if (status === 401) {
+      return 'Correo o contraseña incorrectos.'
+    }
+    if (!error.response) {
+      return 'No se pudo conectar con el servidor. Verifica tu conexión.'
+    }
+  }
+  return 'Ha ocurrido un error inesperado. Intenta de nuevo.'
+}
+
 export const LoginForm = () => {
   const navigate = useNavigate()
-  const { mutate: login, isPending, error, isError } = useLoginMutation()
+  const { mutate: login, isPending, error, isError, reset: resetMutation } = useLoginMutation()
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   })
 
+  const [email, password] = watch(['email', 'password'])
+
+  // Limpia el error del servidor cuando el usuario empieza a corregir sus datos
+  const isErrorRef = useRef(isError)
+  isErrorRef.current = isError
+
+  useEffect(() => {
+    if (isErrorRef.current) {
+      resetMutation()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email, password])
+
   const onSubmit = (values: LoginFormValues) => {
     login(values, {
       onSuccess: () => navigate(ROUTES.DASHBOARD, { replace: true }),
     })
-  }
-
-  const serverError = isError
-    ? 'Credenciales inválidas. Verifica tu email y contraseña.'
-    : null
-
-  if (error) {
-    console.error(error)
   }
 
   return (
@@ -43,8 +69,8 @@ export const LoginForm = () => {
         <Text variant="caption" as="p">Ingresa tus credenciales para acceder al sistema</Text>
       </div>
 
-      {serverError && (
-        <AlertMessage variant="error" message={serverError} />
+      {isError && error && (
+        <AlertMessage variant="error" message={getErrorMessage(error)} />
       )}
 
       <div className={styles.fields}>
