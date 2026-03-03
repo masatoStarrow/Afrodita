@@ -21,8 +21,12 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: unknown) => {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
-      useAuthStore.getState().clearAuth()
-      window.location.href = ROUTES.LOGIN
+      const requestUrl = error.config?.url ?? ''
+      const isAuthEndpoint = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/logout')
+      if (!isAuthEndpoint) {
+        useAuthStore.getState().clearAuth()
+        window.location.href = ROUTES.LOGIN
+      }
     }
     return Promise.reject(error)
   }

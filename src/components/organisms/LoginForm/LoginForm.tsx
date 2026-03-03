@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
@@ -37,26 +36,13 @@ export const LoginForm = () => {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   })
 
-  const [email, password] = watch(['email', 'password'])
-
-  // Limpia el error del servidor cuando el usuario empieza a corregir sus datos
-  const isErrorRef = useRef(isError)
-  isErrorRef.current = isError
-
-  useEffect(() => {
-    if (isErrorRef.current) {
-      resetMutation()
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [email, password])
-
   const onSubmit = (values: LoginFormValues) => {
+    resetMutation()
     login(values, {
       onSuccess: () => navigate(ROUTES.DASHBOARD, { replace: true }),
     })
