@@ -1,5 +1,5 @@
 .header {
-  background-color: #1a2236;
+  background-color: #DFEEF4;
   position: sticky;
   top: 0;
   z-index: 50;
@@ -50,12 +50,13 @@
 }
 
 .roleBadge {
+  font-family: 'Actor', sans-serif;
   font-size: 0.75rem;
-  font-weight: 600;
-  color: #1a2236;
-  background-color: #4FB6C2;
-  padding: 3px 10px;
-  border-radius: 999px;
+  font-weight: 400;
+  color: #32687A;
+  background-color: #9ADAEF;
+  padding: 6px 16px;
+  border-radius: 8px;
   white-space: nowrap;
 }
 
