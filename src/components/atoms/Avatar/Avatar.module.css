@@ -1,0 +1,33 @@
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #38bdf8, #2563eb);
+  color: var(--color-white);
+  font-weight: 600;
+  font-family: var(--font-family);
+}
+
+.sm {
+  width: 28px;
+  height: 28px;
+  font-size: var(--font-size-sm);
+}
+
+.md {
+  width: 36px;
+  height: 36px;
+  font-size: var(--font-size-base);
+}
+
+.lg {
+  width: 48px;
+  height: 48px;
+  font-size: var(--font-size-lg);
+}

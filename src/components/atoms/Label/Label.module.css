@@ -1,0 +1,12 @@
+.label {
+  display: block;
+  font-family: 'Arimo', sans-serif;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: #464C58;
+  margin-bottom: var(--spacing-xs);
+}
+
+.required {
+  color: var(--color-danger);
+}
