@@ -30,3 +30,26 @@
   padding-top: var(--spacing-md);
   border-top: 1px solid #1e293b;
 }
+
+/* ── Responsive ─────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .inner {
+    padding: var(--spacing-lg) var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .description {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .inner {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+
+  .copyright {
+    text-align: center;
+  }
+}

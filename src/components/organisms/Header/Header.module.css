@@ -84,3 +84,44 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ── Responsive ─────────────────────────────────────────────── */
+
+/* md: 768px — ocultar nombre y email, reducir gaps */
+@media (max-width: 768px) {
+  .inner {
+    padding: 0 var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .userInfo {
+    display: none;
+  }
+
+  .right {
+    gap: var(--spacing-sm);
+  }
+}
+
+/* sm: 640px — ocultar badge de rol y label del botón, solo icono */
+@media (max-width: 640px) {
+  .inner {
+    padding: 0 var(--spacing-sm);
+  }
+
+  .nav {
+    flex: 1;
+  }
+
+  .roleBadge {
+    display: none;
+  }
+
+  .logoutBtn span {
+    display: none;
+  }
+
+  .logoutBtn {
+    padding: 6px 8px;
+  }
+}
