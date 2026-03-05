@@ -12,7 +12,7 @@
   font-family: 'Arimo', sans-serif;
   font-weight: 700;
   font-size: 2rem;
-  color: #1a3a4a;
+  color: #32687A;
   margin: 0 0 4px;
   line-height: 1.2;
 }
@@ -174,7 +174,7 @@
 .cell {
   padding: var(--spacing-md);
   font-size: var(--font-size-sm);
-  color: var(--color-text);
+  color: #32687A;
   vertical-align: middle;
 }
 
@@ -237,11 +237,11 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--color-text-muted);
+  color: #32687A;
 }
 
 .contactCell span {
-  color: var(--color-text);
+  color: #32687A;
 }
 
 /* ── Botón Ver historial ── */
@@ -249,8 +249,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background-color: #4FB6C2;
-  color: #ffffff;
+  background-color: #6DC8E0;
+  color: #32687A;
   border: none;
   border-radius: var(--radius-md);
   padding: 6px 12px;
