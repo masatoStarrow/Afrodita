@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { DashboardTemplate } from '@components/templates/DashboardTemplate'
 import { Spinner } from '@components/atoms/Spinner'
 import { AlertMessage } from '@components/molecules/AlertMessage'
 import { useClients } from '@hooks/queries/useClients.query'
+import { ROUTES } from '@constants/routes.constants'
 import type { Client } from '@app-types/client.types'
 import styles from './ClientesPage.module.css'
 
@@ -80,8 +82,13 @@ interface ClientRowProps {
   index:  number
 }
 const ClientRow = ({ client, index }: ClientRowProps) => {
-  const mock    = getMockInteraction(index)
+  const navigate = useNavigate()
+  const mock     = getMockInteraction(index)
   const isActive = client.status === 'active'
+
+  const handleViewHistory = () => {
+    navigate(ROUTES.CLIENT_DETAIL.replace(':id', client.id))
+  }
 
   return (
     <tr className={styles.row}>
@@ -124,7 +131,7 @@ const ClientRow = ({ client, index }: ClientRowProps) => {
         </div>
       </td>
       <td className={styles.cell}>
-        <button className={styles.historyBtn} type="button" disabled title="Próximamente disponible">
+        <button className={styles.historyBtn} type="button" onClick={handleViewHistory}>
           <HistoryIcon />
           Ver historial
         </button>

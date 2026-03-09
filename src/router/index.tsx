@@ -4,8 +4,9 @@ import { ProtectedRoute } from './ProtectedRoute'
 import { PublicRoute } from './PublicRoute'
 import { ROUTES } from '@constants/routes.constants'
 
-const LoginPage    = lazy(() => import('@pages/LoginPage/LoginPage'))
-const ClientesPage = lazy(() => import('@pages/ClientesPage/ClientesPage'))
+const LoginPage         = lazy(() => import('@pages/LoginPage/LoginPage'))
+const ClientesPage      = lazy(() => import('@pages/ClientesPage/ClientesPage'))
+const ClienteDetailPage = lazy(() => import('@pages/ClienteDetailPage/ClienteDetailPage'))
 
 export const router = createBrowserRouter([
   {
@@ -17,7 +18,8 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
-      { path: ROUTES.DASHBOARD, element: <Suspense><ClientesPage /></Suspense> },
+      { path: ROUTES.DASHBOARD,     element: <Suspense><ClientesPage /></Suspense> },
+      { path: ROUTES.CLIENT_DETAIL, element: <Suspense><ClienteDetailPage /></Suspense> },
     ],
   },
   {
