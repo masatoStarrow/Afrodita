@@ -4,6 +4,10 @@ import { DashboardTemplate } from '@components/templates/DashboardTemplate'
 import { Spinner } from '@components/atoms/Spinner'
 import { AlertMessage } from '@components/molecules/AlertMessage'
 import { useClientDetail } from '@hooks/queries/useClients.query'
+import {
+  useClientInteractions,
+  useClientSummary,
+} from '@hooks/queries/useInteractions.query'
 import { ROUTES } from '@constants/routes.constants'
 import { formatDate } from '@utils/format.utils'
 import styles from './ClienteDetailPage.module.css'
@@ -89,25 +93,21 @@ const CloseIcon = () => (
   </svg>
 )
 
-const MOCK_TOTAL_INTERACTIONS = 45
-const MOCK_LAST_30_DAYS = 45
-const MOCK_COMPLETION_RATE = '0%'
-const MOCK_HISTORY_COUNT = 45
-
 const FILTER_TYPES = [
   { value: '', label: 'Todos' },
   { value: 'call', label: 'Llamada' },
   { value: 'email', label: 'Correo' },
   { value: 'meeting', label: 'Reunión' },
+  { value: 'ticket', label: 'Ticket' },
   { value: 'note', label: 'Nota' },
-  { value: 'system', label: 'Evento del sistema' },
 ]
 
 const FILTER_STATUSES = [
   { value: '', label: 'Todos' },
-  { value: 'resuelto', label: 'Resuelto' },
-  { value: 'en_progreso', label: 'En progreso' },
-  { value: 'cerrado', label: 'Cerrado' },
+  { value: 'pending', label: 'Pendiente' },
+  { value: 'in_progress', label: 'En progreso' },
+  { value: 'resolved', label: 'Resuelto' },
+  { value: 'closed', label: 'Cerrado' },
 ]
 
 export const ClienteDetailPage = () => {
@@ -120,6 +120,27 @@ export const ClienteDetailPage = () => {
   const [filterType, setFilterType] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterAgent, setFilterAgent] = useState('')
+
+  const {
+    data: summary,
+    isLoading: isSummaryLoading,
+  } = useClientSummary(id ?? '')
+
+  const {
+    data: interactionList,
+    isLoading: isInteractionsLoading,
+  } = useClientInteractions(
+    id ?? '',
+    {
+      date_from: filterDateFrom || undefined,
+      date_to: filterDateTo || undefined,
+      type: filterType || undefined,
+      status: filterStatus || undefined,
+      agent_id: filterAgent || undefined,
+      page: 1,
+      page_size: 1,
+    }
+  )
 
   const hasActiveFilters = filterDateFrom || filterDateTo || filterType || filterStatus || filterAgent
 
@@ -187,21 +208,29 @@ export const ClienteDetailPage = () => {
           <div className={styles.statCard}>
             <div className={styles.statContent}>
               <span className={styles.statLabel}>Total interacciones</span>
-              <span className={styles.statValue}>{MOCK_TOTAL_INTERACTIONS}</span>
+              <span className={styles.statValue}>
+                {isSummaryLoading ? '—' : (summary?.total_interactions ?? 0)}
+              </span>
             </div>
             <TotalInteractionsIcon />
           </div>
           <div className={styles.statCard}>
             <div className={styles.statContent}>
               <span className={styles.statLabel}>Últimos 30 días</span>
-              <span className={styles.statValue}>{MOCK_LAST_30_DAYS}</span>
+              <span className={styles.statValue}>
+                {isSummaryLoading ? '—' : (summary?.interactions_last_30_days ?? 0)}
+              </span>
             </div>
             <Last30DaysIcon />
           </div>
           <div className={styles.statCard}>
             <div className={styles.statContent}>
               <span className={styles.statLabel}>Tasa de completado</span>
-              <span className={styles.statValue}>{MOCK_COMPLETION_RATE}</span>
+              <span className={styles.statValue}>
+                {isSummaryLoading
+                  ? '—'
+                  : `${Math.round(summary?.completion_rate ?? 0)}%`}
+              </span>
             </div>
             <CompletionRateIcon />
           </div>
@@ -214,7 +243,7 @@ export const ClienteDetailPage = () => {
             <div className={styles.historyTitleGroup}>
               <h2 className={styles.historyTitle}>Historial de interacciones</h2>
               <p className={styles.historyCount}>
-                {MOCK_HISTORY_COUNT} interacciones encontradas
+                {isInteractionsLoading ? '...' : (interactionList?.total ?? 0)} interacciones encontradas
               </p>
             </div>
             <div className={styles.historyActions}>

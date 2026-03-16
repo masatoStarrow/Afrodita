@@ -33,6 +33,20 @@ vi.mock('@hooks/queries/useClients.query', () => ({
   useClients: () => mockClientsState,
 }))
 
+vi.mock('@hooks/queries/useInteractions.query', () => ({
+  useInteractionsMetrics: () => ({
+    data: {
+      total_clients: 3,
+      total_interactions: 105,
+      avg_interactions_per_client: 35,
+      per_client: [],
+    },
+    isLoading: false,
+    isError: false,
+    error: null,
+  }),
+}))
+
 // ── Datos de prueba ──────────────────────────────────────────────────────────
 
 const mockClients: ClientListData = {

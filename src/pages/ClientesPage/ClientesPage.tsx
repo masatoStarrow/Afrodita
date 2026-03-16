@@ -4,21 +4,29 @@ import { DashboardTemplate } from '@components/templates/DashboardTemplate'
 import { Spinner } from '@components/atoms/Spinner'
 import { AlertMessage } from '@components/molecules/AlertMessage'
 import { useClients } from '@hooks/queries/useClients.query'
+import { useInteractionsMetrics } from '@hooks/queries/useInteractions.query'
 import { ROUTES } from '@constants/routes.constants'
 import type { Client } from '@app-types/client.types'
+import type { ClientMetricItem } from '@app-types/interaction.types'
 import styles from './ClientesPage.module.css'
 
-/* ── Datos mock de interacciones (se reemplazarán cuando el módulo esté listo) ── */
-const MOCK_INTERACTIONS: Record<number, { days: number; count: number }> = {
-  0: { days: 10, count: 45 },
-  1: { days: 10, count: 32 },
-  2: { days: 11, count: 28 },
-  3: { days: 12, count: 35 },
-  4: { days: 13, count: 22 },
-  5: { days: 14, count: 12 },
+const toRelativeDateLabel = (isoDate: string | null): string => {
+  if (!isoDate) return '—'
+
+  const date = new Date(isoDate)
+  if (Number.isNaN(date.getTime())) return '—'
+
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffHours < 24) {
+    return `hace ${Math.max(diffHours, 0)} hora${diffHours === 1 ? '' : 's'}`
+  }
+
+  return `hace ${Math.max(diffDays, 0)} día${diffDays === 1 ? '' : 's'}`
 }
-const getMockInteraction = (idx: number) =>
-  MOCK_INTERACTIONS[idx % Object.keys(MOCK_INTERACTIONS).length]
 
 /* ── Íconos ── */
 const SearchIcon = () => (
@@ -79,12 +87,12 @@ const StatCard = ({ label, value, mocked = false }: StatCardProps) => (
 
 interface ClientRowProps {
   client: Client
-  index:  number
+  metricsByClient: Record<string, ClientMetricItem>
 }
-const ClientRow = ({ client, index }: ClientRowProps) => {
+const ClientRow = ({ client, metricsByClient }: ClientRowProps) => {
   const navigate = useNavigate()
-  const mock     = getMockInteraction(index)
   const isActive = client.status === 'active'
+  const clientMetrics = metricsByClient[client.id]
 
   const handleViewHistory = () => {
     navigate(ROUTES.CLIENT_DETAIL.replace(':id', client.id))
@@ -121,13 +129,13 @@ const ClientRow = ({ client, index }: ClientRowProps) => {
       <td className={`${styles.cell} ${styles.mockCell}`}>
         <div className={styles.contactCell}>
           <CalendarIcon />
-          <span>hace {mock.days} días</span>
+          <span>{toRelativeDateLabel(clientMetrics?.last_interaction_date ?? null)}</span>
         </div>
       </td>
       <td className={`${styles.cell} ${styles.mockCell}`}>
         <div className={styles.contactCell}>
           <InteractionIcon />
-          <span>{mock.count}</span>
+          <span>{clientMetrics?.interaction_count ?? '—'}</span>
         </div>
       </td>
       <td className={styles.cell}>
@@ -144,6 +152,16 @@ const ClientRow = ({ client, index }: ClientRowProps) => {
 export const ClientesPage = () => {
   const [search, setSearch] = useState('')
   const { data, isLoading, isError, error } = useClients({ page_size: 100 })
+  const { data: metrics } = useInteractionsMetrics()
+
+  const metricsByClient = useMemo<Record<string, ClientMetricItem>>(() => {
+    if (!metrics?.per_client?.length) return {}
+
+    return metrics.per_client.reduce<Record<string, ClientMetricItem>>((acc, item) => {
+      acc[item.client_id] = item
+      return acc
+    }, {})
+  }, [metrics?.per_client])
 
   const filtered = useMemo(() => {
     if (!data?.items) return []
@@ -181,10 +199,15 @@ export const ClientesPage = () => {
       <div className={styles.statsGrid}>
         <StatCard
           label="Total de clientes"
-          value={isLoading ? '...' : (data?.total ?? '—')}
+          value={isLoading ? '...' : (metrics?.total_clients ?? data?.total ?? '—')}
         />
-        <StatCard label="Interacciones totales" value="—" mocked />
-        <StatCard label="Promedio por cliente"  value="—" mocked />
+        <StatCard label="Interacciones totales" value={metrics?.total_interactions ?? '—'} />
+        <StatCard
+          label="Promedio por cliente"
+          value={typeof metrics?.avg_interactions_per_client === 'number'
+            ? metrics.avg_interactions_per_client.toFixed(2)
+            : '—'}
+        />
       </div>
 
       {/* Tabla de clientes */}
@@ -240,8 +263,8 @@ export const ClientesPage = () => {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((client, idx) => (
-                    <ClientRow key={client.id} client={client} index={idx} />
+                  filtered.map((client) => (
+                    <ClientRow key={client.id} client={client} metricsByClient={metricsByClient} />
                   ))
                 )}
               </tbody>
