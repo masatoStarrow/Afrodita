@@ -178,10 +178,6 @@
   vertical-align: middle;
 }
 
-.mockCell {
-  color: var(--color-text-muted);
-}
-
 /* ── Celda Cliente ── */
 .clientCell {
   display: flex;
@@ -249,9 +245,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background-color: #6DC8E0;
-  color: #32687A;
-  border: none;
+  background-color: #c4e8f2;
+  color: #31657A;
+  border: 1px solid #a0d8e8;
   border-radius: var(--radius-md);
   padding: 6px 12px;
   font-size: 0.75rem;
@@ -263,7 +259,7 @@
 }
 
 .historyBtn:hover:not(:disabled) {
-  background-color: #3aa3af;
+  background-color: #aedde9;
 }
 
 .historyBtn:disabled {
