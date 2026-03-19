@@ -3,11 +3,12 @@ import { Link, useParams } from 'react-router-dom'
 import { DashboardTemplate } from '@components/templates/DashboardTemplate'
 import { Spinner } from '@components/atoms/Spinner'
 import { AlertMessage } from '@components/molecules/AlertMessage'
+import { Modal } from '@components/atoms/Modal/Modal'
+import { NewInteractionForm } from '@components/organisms/NewInteractionForm/NewInteractionForm'
+import { InteractionTimeline } from '@components/organisms/InteractionTimeline/InteractionTimeline'
 import { useClientDetail } from '@hooks/queries/useClients.query'
-import {
-  useClientInteractions,
-  useClientSummary,
-} from '@hooks/queries/useInteractions.query'
+import { useClientInteractions, useClientSummary } from '@hooks/queries/useInteractions.query'
+import { useAgentMap } from '@hooks/queries/useUsers.query'
 import { ROUTES } from '@constants/routes.constants'
 import { formatDate } from '@utils/format.utils'
 import styles from './ClienteDetailPage.module.css'
@@ -93,6 +94,12 @@ const CloseIcon = () => (
   </svg>
 )
 
+const PlusIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+)
+
 const FILTER_TYPES = [
   { value: '', label: 'Todos' },
   { value: 'call', label: 'Llamada' },
@@ -113,7 +120,14 @@ const FILTER_STATUSES = [
 export const ClienteDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const { data: client, isLoading, isError, error } = useClientDetail(id ?? '')
+  const { data: interactionsData, isLoading: interactionsLoading } = useClientInteractions(id ?? '', {
+    page_size: 100,
+    order_by: 'interaction_date',
+    order_dir: 'desc',
+  })
+  const { data: agentMap } = useAgentMap()
 
+  const [showModal, setShowModal] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
   const [filterDateFrom, setFilterDateFrom] = useState('')
   const [filterDateTo, setFilterDateTo] = useState('')
@@ -125,22 +139,6 @@ export const ClienteDetailPage = () => {
     data: summary,
     isLoading: isSummaryLoading,
   } = useClientSummary(id ?? '')
-
-  const {
-    data: interactionList,
-    isLoading: isInteractionsLoading,
-  } = useClientInteractions(
-    id ?? '',
-    {
-      date_from: filterDateFrom || undefined,
-      date_to: filterDateTo || undefined,
-      type: filterType || undefined,
-      status: filterStatus || undefined,
-      agent_id: filterAgent || undefined,
-      page: 1,
-      page_size: 1,
-    }
-  )
 
   const hasActiveFilters = filterDateFrom || filterDateTo || filterType || filterStatus || filterAgent
 
@@ -209,7 +207,7 @@ export const ClienteDetailPage = () => {
             <div className={styles.statContent}>
               <span className={styles.statLabel}>Total interacciones</span>
               <span className={styles.statValue}>
-                {isSummaryLoading ? '—' : (summary?.total_interactions ?? 0)}
+                {isSummaryLoading ? '...' : (summary?.total_interactions ?? 0)}
               </span>
             </div>
             <TotalInteractionsIcon />
@@ -218,7 +216,7 @@ export const ClienteDetailPage = () => {
             <div className={styles.statContent}>
               <span className={styles.statLabel}>Últimos 30 días</span>
               <span className={styles.statValue}>
-                {isSummaryLoading ? '—' : (summary?.interactions_last_30_days ?? 0)}
+                {isSummaryLoading ? '...' : (summary?.interactions_last_30_days ?? 0)}
               </span>
             </div>
             <Last30DaysIcon />
@@ -228,7 +226,7 @@ export const ClienteDetailPage = () => {
               <span className={styles.statLabel}>Tasa de completado</span>
               <span className={styles.statValue}>
                 {isSummaryLoading
-                  ? '—'
+                  ? '...'
                   : `${Math.round(summary?.completion_rate ?? 0)}%`}
               </span>
             </div>
@@ -243,7 +241,7 @@ export const ClienteDetailPage = () => {
             <div className={styles.historyTitleGroup}>
               <h2 className={styles.historyTitle}>Historial de interacciones</h2>
               <p className={styles.historyCount}>
-                {isInteractionsLoading ? '...' : (interactionList?.total ?? 0)} interacciones encontradas
+                {interactionsLoading ? '...' : `${interactionsData?.total ?? 0} interacciones encontradas`}
               </p>
             </div>
             <div className={styles.historyActions}>
@@ -254,6 +252,14 @@ export const ClienteDetailPage = () => {
               >
                 <FilterIcon />
                 Filtros
+              </button>
+              <button
+                type="button"
+                className={styles.newInteractionBtn}
+                onClick={() => setShowModal(true)}
+              >
+                <PlusIcon />
+                Nueva interacción
               </button>
             </div>
           </div>
@@ -326,8 +332,25 @@ export const ClienteDetailPage = () => {
               )}
             </div>
           )}
+
+          {interactionsLoading && (
+            <div className={styles.stateContainer}>
+              <Spinner size="lg" />
+            </div>
+          )}
+
+          {!interactionsLoading && interactionsData && (
+            <InteractionTimeline interactions={interactionsData.items} agentMap={agentMap} />
+          )}
         </div>
       )}
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Nueva Interacción">
+        <NewInteractionForm
+          clientId={id ?? ''}
+          onCancel={() => setShowModal(false)}
+          onSuccess={() => setShowModal(false)}
+        />
+      </Modal>
     </DashboardTemplate>
   )
 }

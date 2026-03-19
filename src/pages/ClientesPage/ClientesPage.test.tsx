@@ -1,10 +1,10 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import ClientesPage from './ClientesPage'
 import type { ClientListData } from '@app-types/client.types'
+import type { MetricsData } from '@app-types/metrics.types'
 
 // ── Mocks de dependencias ────────────────────────────────────────────────────
 
@@ -33,18 +33,13 @@ vi.mock('@hooks/queries/useClients.query', () => ({
   useClients: () => mockClientsState,
 }))
 
-vi.mock('@hooks/queries/useInteractions.query', () => ({
-  useInteractionsMetrics: () => ({
-    data: {
-      total_clients: 3,
-      total_interactions: 105,
-      avg_interactions_per_client: 35,
-      per_client: [],
-    },
-    isLoading: false,
-    isError: false,
-    error: null,
-  }),
+let mockMetricsState = {
+  data:      undefined as MetricsData | undefined,
+  isLoading: false,
+}
+
+vi.mock('@hooks/queries/useMetrics.query', () => ({
+  useMetrics: () => mockMetricsState,
 }))
 
 // ── Datos de prueba ──────────────────────────────────────────────────────────
@@ -85,6 +80,17 @@ const mockClients: ClientListData = {
   pages:     1,
 }
 
+const mockMetrics: MetricsData = {
+  total_clients:              3,
+  total_interactions:         12,
+  avg_interactions_per_client: 4,
+  per_client: [
+    { client_id: 'uuid-1', interaction_count: 5, last_interaction_date: '2026-03-15T10:00:00Z' },
+    { client_id: 'uuid-2', interaction_count: 3, last_interaction_date: '2026-03-10T14:00:00Z' },
+    { client_id: 'uuid-3', interaction_count: 4, last_interaction_date: null },
+  ],
+}
+
 const renderPage = () => {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
@@ -102,6 +108,10 @@ beforeEach(() => {
     isLoading: false,
     isError:   false,
     error:     null,
+  }
+  mockMetricsState = {
+    data:      undefined,
+    isLoading: false,
   }
 })
 
@@ -324,5 +334,70 @@ describe('ClientesPage — HU-07: Ver el historial de cada cliente', () => {
     const rows = screen.getAllByRole('row').slice(1)
     const inactiveRow = within(rows[1]).getByRole('button', { name: /Ver historial/i })
     expect(inactiveRow).toBeInTheDocument()
+  })
+})
+
+// ── Integración con métricas reales (reemplazo de datos mock) ────────────────
+
+describe('ClientesPage — Datos de interacciones desde backend', () => {
+
+  beforeEach(() => {
+    mockClientsState.data = mockClients
+    mockMetricsState.data = mockMetrics
+  })
+
+  it('muestra el conteo real de interacciones por cliente', () => {
+    renderPage()
+    const rows = screen.getAllByRole('row').slice(1)
+    expect(within(rows[0]).getByText('5')).toBeInTheDocument()
+    expect(within(rows[1]).getByText('3')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('4')).toBeInTheDocument()
+  })
+
+  it('muestra 0 interacciones si el cliente no tiene métricas', () => {
+    mockMetricsState.data = { ...mockMetrics, per_client: [] }
+    renderPage()
+    const zeros = screen.getAllByText('0')
+    expect(zeros).toHaveLength(mockClients.items.length)
+  })
+
+  it('muestra la fecha relativa de última interacción cuando existe', () => {
+    renderPage()
+    const rows = screen.getAllByRole('row').slice(1)
+    expect(within(rows[0]).getByText(/hace/i)).toBeInTheDocument()
+  })
+
+  it('muestra "—" si el cliente no tiene fecha de última interacción', () => {
+    renderPage()
+    const rows = screen.getAllByRole('row').slice(1)
+    const thirdRow = rows[2]
+    const dashes = within(thirdRow).getAllByText('—')
+    expect(dashes.length).toBeGreaterThan(0)
+  })
+
+  it('muestra las tarjetas de métricas globales', () => {
+    renderPage()
+    expect(screen.getByText('Total de clientes')).toBeInTheDocument()
+    expect(screen.getByText('Interacciones totales')).toBeInTheDocument()
+    expect(screen.getByText('Promedio por cliente')).toBeInTheDocument()
+  })
+
+  it('muestra el valor real de interacciones totales en la tarjeta', () => {
+    renderPage()
+    expect(screen.getByText('12')).toBeInTheDocument()
+  })
+
+  it('muestra el promedio real por cliente en la tarjeta', () => {
+    renderPage()
+    const allFours = screen.getAllByText('4')
+    expect(allFours.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('muestra "..." mientras las métricas están cargando', () => {
+    mockMetricsState.isLoading = true
+    mockMetricsState.data = undefined
+    renderPage()
+    const loadingIndicators = screen.getAllByText('...')
+    expect(loadingIndicators.length).toBeGreaterThanOrEqual(2)
   })
 })

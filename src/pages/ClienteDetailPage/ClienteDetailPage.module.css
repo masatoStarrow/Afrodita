@@ -150,25 +150,45 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  border: 1px solid var(--color-border);
+  border: 1px solid #a0d8e8;
   border-radius: var(--radius-md);
-  background: var(--color-white);
+  background: #c4e8f2;
   font-family: 'Arimo', sans-serif;
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: 600;
   color: #32687A;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .filterBtn:hover {
-  background-color: #f0f9ff;
-  border-color: #4FB6C2;
+  background-color: #aedde9;
+  border-color: #7fc8da;
 }
 
 .filterBtnActive {
-  background-color: #e0f2fe;
-  border-color: #4FB6C2;
+  background-color: #9ad5e5;
+  border-color: #7fc8da;
+}
+
+.newInteractionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, #0099FF 0%, #51D4FC 50%, #1F8CD4 100%);
+  font-family: 'Arimo', sans-serif;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-white);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.newInteractionBtn:hover {
+  opacity: 0.9;
 }
 
 /* ── Panel de filtros ── */

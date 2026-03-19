@@ -4,29 +4,13 @@ import { DashboardTemplate } from '@components/templates/DashboardTemplate'
 import { Spinner } from '@components/atoms/Spinner'
 import { AlertMessage } from '@components/molecules/AlertMessage'
 import { useClients } from '@hooks/queries/useClients.query'
-import { useInteractionsMetrics } from '@hooks/queries/useInteractions.query'
+import { useMetrics } from '@hooks/queries/useMetrics.query'
 import { ROUTES } from '@constants/routes.constants'
+import { formatRelativeDate } from '@utils/format.utils'
 import type { Client } from '@app-types/client.types'
-import type { ClientMetricItem } from '@app-types/interaction.types'
+import type { ClientMetric } from '@app-types/metrics.types'
 import styles from './ClientesPage.module.css'
 
-const toRelativeDateLabel = (isoDate: string | null): string => {
-  if (!isoDate) return '—'
-
-  const date = new Date(isoDate)
-  if (Number.isNaN(date.getTime())) return '—'
-
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-  if (diffHours < 24) {
-    return `hace ${Math.max(diffHours, 0)} hora${diffHours === 1 ? '' : 's'}`
-  }
-
-  return `hace ${Math.max(diffDays, 0)} día${diffDays === 1 ? '' : 's'}`
-}
 
 /* ── Íconos ── */
 const SearchIcon = () => (
@@ -67,8 +51,8 @@ const InteractionIcon = () => (
 )
 
 const HistoryIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l4 2" />
+  <svg width="16" height="16" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M5.0001 1.5V0H10.0002V5H8.50016V2.56L2.56005 8.5H5.0001V10H0V5H1.50003V7.44L7.44014 1.5H5.0001ZM21.9804 15.82L21.3504 20.28C21.2104 21.27 20.3604 22 19.3704 22H13.2103C12.6802 22 11.9202 21.79 11.5502 21.41L7.00013 16.62L7.83015 15.78C8.07016 15.54 8.41016 15.43 8.75017 15.5L12.0002 16.24V5.5C12.0002 4.67 12.6702 4 13.5003 4C14.3303 4 15.0003 4.67 15.0003 5.5V11.5H15.9103C16.2203 11.5 16.5303 11.57 16.8003 11.71L20.8904 13.75C21.6604 14.14 22.1004 14.97 21.9804 15.82Z" fill="currentColor" />
   </svg>
 )
 
@@ -87,12 +71,11 @@ const StatCard = ({ label, value, mocked = false }: StatCardProps) => (
 
 interface ClientRowProps {
   client: Client
-  metricsByClient: Record<string, ClientMetricItem>
+  metric?: ClientMetric
 }
-const ClientRow = ({ client, metricsByClient }: ClientRowProps) => {
+const ClientRow = ({ client, metric }: ClientRowProps) => {
   const navigate = useNavigate()
   const isActive = client.status === 'active'
-  const clientMetrics = metricsByClient[client.id]
 
   const handleViewHistory = () => {
     navigate(ROUTES.CLIENT_DETAIL.replace(':id', client.id))
@@ -126,16 +109,20 @@ const ClientRow = ({ client, metricsByClient }: ClientRowProps) => {
           <span>{client.phone ?? '—'}</span>
         </div>
       </td>
-      <td className={`${styles.cell} ${styles.mockCell}`}>
+      <td className={styles.cell}>
         <div className={styles.contactCell}>
           <CalendarIcon />
-          <span>{toRelativeDateLabel(clientMetrics?.last_interaction_date ?? null)}</span>
+          <span>
+            {metric?.last_interaction_date
+              ? formatRelativeDate(metric.last_interaction_date)
+              : '—'}
+          </span>
         </div>
       </td>
-      <td className={`${styles.cell} ${styles.mockCell}`}>
+      <td className={styles.cell}>
         <div className={styles.contactCell}>
           <InteractionIcon />
-          <span>{clientMetrics?.interaction_count ?? '—'}</span>
+          <span>{metric?.interaction_count ?? 0}</span>
         </div>
       </td>
       <td className={styles.cell}>
@@ -152,15 +139,16 @@ const ClientRow = ({ client, metricsByClient }: ClientRowProps) => {
 export const ClientesPage = () => {
   const [search, setSearch] = useState('')
   const { data, isLoading, isError, error } = useClients({ page_size: 100 })
-  const { data: metrics } = useInteractionsMetrics()
+  const { data: metrics, isLoading: metricsLoading } = useMetrics()
 
-  const metricsByClient = useMemo<Record<string, ClientMetricItem>>(() => {
-    if (!metrics?.per_client?.length) return {}
-
-    return metrics.per_client.reduce<Record<string, ClientMetricItem>>((acc, item) => {
-      acc[item.client_id] = item
-      return acc
-    }, {})
+  const metricsMap = useMemo(() => {
+    const map = new Map<string, ClientMetric>()
+    if (metrics?.per_client) {
+      for (const m of metrics.per_client) {
+        map.set(m.client_id, m)
+      }
+    }
+    return map
   }, [metrics?.per_client])
 
   const filtered = useMemo(() => {
@@ -201,12 +189,13 @@ export const ClientesPage = () => {
           label="Total de clientes"
           value={isLoading ? '...' : (metrics?.total_clients ?? data?.total ?? '—')}
         />
-        <StatCard label="Interacciones totales" value={metrics?.total_interactions ?? '—'} />
+        <StatCard
+          label="Interacciones totales"
+          value={metricsLoading ? '...' : (metrics?.total_interactions ?? '—')}
+        />
         <StatCard
           label="Promedio por cliente"
-          value={typeof metrics?.avg_interactions_per_client === 'number'
-            ? metrics.avg_interactions_per_client.toFixed(2)
-            : '—'}
+          value={metricsLoading ? '...' : (metrics?.avg_interactions_per_client ?? '—')}
         />
       </div>
 
@@ -264,7 +253,7 @@ export const ClientesPage = () => {
                   </tr>
                 ) : (
                   filtered.map((client) => (
-                    <ClientRow key={client.id} client={client} metricsByClient={metricsByClient} />
+                    <ClientRow key={client.id} client={client} metric={metricsMap.get(client.id)} />
                   ))
                 )}
               </tbody>
