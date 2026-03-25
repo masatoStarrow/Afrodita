@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { DashboardTemplate } from '@components/templates/DashboardTemplate'
 import { Spinner } from '@components/atoms/Spinner'
@@ -6,6 +6,8 @@ import { AlertMessage } from '@components/molecules/AlertMessage'
 import { Modal } from '@components/atoms/Modal/Modal'
 import { NewInteractionForm } from '@components/organisms/NewInteractionForm/NewInteractionForm'
 import { InteractionTimeline } from '@components/organisms/InteractionTimeline/InteractionTimeline'
+import { FilterPanel, INITIAL_FILTERS, hasActiveFilters } from '@components/organisms/FilterPanel/FilterPanel'
+import type { FilterState } from '@components/organisms/FilterPanel/FilterPanel'
 import { useClientDetail } from '@hooks/queries/useClients.query'
 import { useClientInteractions, useClientSummary } from '@hooks/queries/useInteractions.query'
 import { useAgentMap } from '@hooks/queries/useUsers.query'
@@ -88,34 +90,11 @@ const FilterIcon = () => (
   </svg>
 )
 
-const CloseIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-)
-
 const PlusIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 )
-
-const FILTER_TYPES = [
-  { value: '', label: 'Todos' },
-  { value: 'call', label: 'Llamada' },
-  { value: 'email', label: 'Correo' },
-  { value: 'meeting', label: 'Reunión' },
-  { value: 'ticket', label: 'Ticket' },
-  { value: 'note', label: 'Nota' },
-]
-
-const FILTER_STATUSES = [
-  { value: '', label: 'Todos' },
-  { value: 'pending', label: 'Pendiente' },
-  { value: 'in_progress', label: 'En progreso' },
-  { value: 'resolved', label: 'Resuelto' },
-  { value: 'closed', label: 'Cerrado' },
-]
 
 export const ClienteDetailPage = () => {
   const { id } = useParams<{ id: string }>()
@@ -129,26 +108,24 @@ export const ClienteDetailPage = () => {
 
   const [showModal, setShowModal] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
-  const [filterDateFrom, setFilterDateFrom] = useState('')
-  const [filterDateTo, setFilterDateTo] = useState('')
-  const [filterType, setFilterType] = useState('')
-  const [filterStatus, setFilterStatus] = useState('')
-  const [filterAgent, setFilterAgent] = useState('')
+  const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS)
 
   const {
     data: summary,
     isLoading: isSummaryLoading,
   } = useClientSummary(id ?? '')
 
-  const hasActiveFilters = filterDateFrom || filterDateTo || filterType || filterStatus || filterAgent
-
-  const handleClearFilters = () => {
-    setFilterDateFrom('')
-    setFilterDateTo('')
-    setFilterType('')
-    setFilterStatus('')
-    setFilterAgent('')
-  }
+  const filteredInteractions = useMemo(() => {
+    const items = interactionsData?.items ?? []
+    return items.filter((interaction) => {
+      if (filters.dateFrom && interaction.interaction_date < filters.dateFrom) return false
+      if (filters.dateTo   && interaction.interaction_date > filters.dateTo + 'T23:59:59') return false
+      if (filters.types.length    > 0 && !filters.types.includes(interaction.type))     return false
+      if (filters.statuses.length > 0 && !filters.statuses.includes(interaction.status)) return false
+      if (filters.agentIds.length > 0 && !filters.agentIds.includes(interaction.agent_id)) return false
+      return true
+    })
+  }, [interactionsData, filters])
 
   return (
     <DashboardTemplate>
@@ -241,13 +218,17 @@ export const ClienteDetailPage = () => {
             <div className={styles.historyTitleGroup}>
               <h2 className={styles.historyTitle}>Historial de interacciones</h2>
               <p className={styles.historyCount}>
-                {interactionsLoading ? '...' : `${interactionsData?.total ?? 0} interacciones encontradas`}
+                {interactionsLoading
+                  ? '...'
+                  : hasActiveFilters(filters)
+                    ? `${filteredInteractions.length} de ${interactionsData?.total ?? 0} interacciones`
+                    : `${interactionsData?.total ?? 0} interacciones encontradas`}
               </p>
             </div>
             <div className={styles.historyActions}>
               <button
                 type="button"
-                className={`${styles.filterBtn} ${hasActiveFilters ? styles.filterBtnActive : ''}`}
+                className={`${styles.filterBtn} ${hasActiveFilters(filters) ? styles.filterBtnActive : ''}`}
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <FilterIcon />
@@ -264,74 +245,13 @@ export const ClienteDetailPage = () => {
             </div>
           </div>
 
-          {showFilters && (
-            <div className={styles.filtersPanel}>
-              <div className={styles.filtersGrid}>
-                <div className={styles.filterField}>
-                  <label className={styles.filterLabel}>Fecha desde</label>
-                  <input
-                    type="date"
-                    className={styles.filterInput}
-                    value={filterDateFrom}
-                    onChange={(e) => setFilterDateFrom(e.target.value)}
-                  />
-                </div>
-                <div className={styles.filterField}>
-                  <label className={styles.filterLabel}>Fecha hasta</label>
-                  <input
-                    type="date"
-                    className={styles.filterInput}
-                    value={filterDateTo}
-                    onChange={(e) => setFilterDateTo(e.target.value)}
-                  />
-                </div>
-                <div className={styles.filterField}>
-                  <label className={styles.filterLabel}>Tipo de interacción</label>
-                  <select
-                    className={styles.filterInput}
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value)}
-                  >
-                    {FILTER_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className={styles.filterField}>
-                  <label className={styles.filterLabel}>Estado</label>
-                  <select
-                    className={styles.filterInput}
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                  >
-                    {FILTER_STATUSES.map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className={styles.filterField}>
-                  <label className={styles.filterLabel}>Agente</label>
-                  <input
-                    type="text"
-                    className={styles.filterInput}
-                    placeholder="Nombre del agente"
-                    value={filterAgent}
-                    onChange={(e) => setFilterAgent(e.target.value)}
-                  />
-                </div>
-              </div>
-              {hasActiveFilters && (
-                <button
-                  type="button"
-                  className={styles.clearFiltersBtn}
-                  onClick={handleClearFilters}
-                >
-                  <CloseIcon />
-                  Limpiar filtros
-                </button>
-              )}
-            </div>
-          )}
+          <FilterPanel
+            isOpen={showFilters}
+            onClose={() => setShowFilters(false)}
+            filters={filters}
+            onChange={setFilters}
+            agentMap={agentMap ?? {}}
+          />
 
           {interactionsLoading && (
             <div className={styles.stateContainer}>
@@ -340,7 +260,7 @@ export const ClienteDetailPage = () => {
           )}
 
           {!interactionsLoading && interactionsData && (
-            <InteractionTimeline interactions={interactionsData.items} agentMap={agentMap} />
+            <InteractionTimeline interactions={filteredInteractions} agentMap={agentMap} />
           )}
         </div>
       )}

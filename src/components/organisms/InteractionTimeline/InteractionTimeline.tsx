@@ -87,6 +87,7 @@ const TYPE_LABELS: Record<InteractionType, string> = {
 }
 
 const STATUS_LABELS: Record<InteractionStatus, string> = {
+  open:        'Abierto',
   pending:     'Pendiente',
   in_progress: 'En progreso',
   resolved:    'Resuelto',
@@ -94,6 +95,7 @@ const STATUS_LABELS: Record<InteractionStatus, string> = {
 }
 
 const STATUS_STYLE: Record<InteractionStatus, string> = {
+  open:        styles.badgePending,
   pending:     styles.badgePending,
   in_progress: styles.badgeInProgress,
   resolved:    styles.badgeResolved,
@@ -101,6 +103,7 @@ const STATUS_STYLE: Record<InteractionStatus, string> = {
 }
 
 const ICON_STATUS_STYLE: Record<InteractionStatus, string> = {
+  open:        styles.iconPending,
   pending:     styles.iconPending,
   in_progress: styles.iconInProgress,
   resolved:    styles.iconResolved,
@@ -108,6 +111,7 @@ const ICON_STATUS_STYLE: Record<InteractionStatus, string> = {
 }
 
 const CARD_STATUS_STYLE: Record<InteractionStatus, string> = {
+  open:        styles.cardPending,
   pending:     styles.cardPending,
   in_progress: styles.cardInProgress,
   resolved:    styles.cardResolved,

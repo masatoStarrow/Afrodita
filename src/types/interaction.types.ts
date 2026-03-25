@@ -2,7 +2,7 @@ import type { ApiResponse } from './api.types'
 
 export type InteractionType    = 'call' | 'email' | 'meeting' | 'ticket' | 'note'
 export type InteractionChannel = 'phone' | 'email' | 'whatsapp' | 'in_person' | 'platform'
-export type InteractionStatus  = 'pending' | 'in_progress' | 'resolved' | 'closed'
+export type InteractionStatus  = 'open' | 'pending' | 'in_progress' | 'resolved' | 'closed'
 
 export interface CreateInteractionPayload {
   client_id:         string

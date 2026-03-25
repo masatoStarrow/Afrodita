@@ -191,72 +191,6 @@
   opacity: 0.9;
 }
 
-/* ── Panel de filtros ── */
-.filtersPanel {
-  padding: var(--spacing-lg);
-  background-color: #f8fbfc;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.filtersGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-}
-
-.filterField {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.filterLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #32687A;
-}
-
-.filterInput {
-  font-family: 'Arimo', sans-serif;
-  font-size: var(--font-size-sm);
-  padding: 8px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-white);
-  color: var(--color-text);
-  outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.filterInput:focus {
-  border-color: #4FB6C2;
-  box-shadow: 0 0 0 3px rgba(79, 182, 194, 0.15);
-}
-
-.filterInput::placeholder {
-  color: var(--color-text-muted);
-}
-
-.clearFiltersBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: var(--spacing-md);
-  padding: 0;
-  border: none;
-  background: none;
-  font-family: 'Arimo', sans-serif;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-danger);
-  cursor: pointer;
-  transition: opacity var(--transition-fast);
-}
-
-.clearFiltersBtn:hover {
-  opacity: 0.7;
-}
-
 /* ── Estado de carga / error ── */
 .stateContainer {
   padding: var(--spacing-2xl);
@@ -278,9 +212,5 @@
   .historyHeader {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .filtersGrid {
-    grid-template-columns: 1fr;
   }
 }
