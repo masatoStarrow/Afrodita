@@ -260,7 +260,11 @@ export const ClienteDetailPage = () => {
           )}
 
           {!interactionsLoading && interactionsData && (
-            <InteractionTimeline interactions={filteredInteractions} agentMap={agentMap} />
+            <InteractionTimeline
+              interactions={filteredInteractions}
+              clientId={id ?? ''}
+              agentMap={agentMap}
+            />
           )}
         </div>
       )}

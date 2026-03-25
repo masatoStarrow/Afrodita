@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import type { Interaction, InteractionType, InteractionStatus } from '@app-types/interaction.types'
 import { formatDate, formatRelativeDate, formatTime, formatDuration } from '@utils/format.utils'
+import { buildRoute } from '@constants/routes.constants'
 import styles from './InteractionTimeline.module.css'
 
 /* ── Icons ── */
@@ -138,11 +140,14 @@ function groupByDate(interactions: Interaction[]): Map<string, Interaction[]> {
 
 interface InteractionCardProps {
   interaction: Interaction
-  agentName: string
+  agentName:   string
+  clientId:    string
 }
 
-const InteractionCard = ({ interaction, agentName }: InteractionCardProps) => (
-  <div className={`${styles.card} ${CARD_STATUS_STYLE[interaction.status] ?? ''}`}>
+const InteractionCard = ({ interaction, agentName, clientId }: InteractionCardProps) => (
+  <Link
+    to={buildRoute.interactionDetail(clientId, interaction.id)}
+    className={`${styles.card} ${CARD_STATUS_STYLE[interaction.status] ?? ''}`}>
     <div className={styles.cardTop}>
       <div className={`${styles.cardIcon} ${ICON_STATUS_STYLE[interaction.status] ?? ''}`}>
         <TypeIcon type={interaction.type} />
@@ -187,17 +192,18 @@ const InteractionCard = ({ interaction, agentName }: InteractionCardProps) => (
         <p className={styles.internalNotesText}>{interaction.internal_notes}</p>
       </div>
     )}
-  </div>
+  </Link>
 )
 
 /* ── Timeline component ── */
 
 interface InteractionTimelineProps {
   interactions: Interaction[]
-  agentMap?: Record<string, string>
+  clientId:     string
+  agentMap?:    Record<string, string>
 }
 
-export const InteractionTimeline = ({ interactions, agentMap = {} }: InteractionTimelineProps) => {
+export const InteractionTimeline = ({ interactions, clientId, agentMap = {} }: InteractionTimelineProps) => {
   const grouped = useMemo(() => groupByDate(interactions), [interactions])
 
   const getAgentName = (agentId: string) =>
@@ -228,6 +234,7 @@ export const InteractionTimeline = ({ interactions, agentMap = {} }: Interaction
                 key={interaction.id}
                 interaction={interaction}
                 agentName={getAgentName(interaction.agent_id)}
+                clientId={clientId}
               />
             ))}
           </div>

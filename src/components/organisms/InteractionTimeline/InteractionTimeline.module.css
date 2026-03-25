@@ -78,12 +78,16 @@
 
 /* ── Interaction card ── */
 .card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
   background: var(--color-white);
   border: 1px solid #d5e6ec;
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   position: relative;
   transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+  cursor: pointer;
 }
 
 .card:hover {
