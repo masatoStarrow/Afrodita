@@ -1,3 +1,5 @@
-export const API_URL  = import.meta.env.VITE_API_URL as string
-export const APP_NAME = import.meta.env.VITE_APP_NAME as string
-export const APP_ENV  = import.meta.env.VITE_APP_ENV as string
+import { runtimeConfig } from '@config/runtime-config'
+
+export const API_URL  = runtimeConfig.VITE_API_URL
+export const APP_NAME = runtimeConfig.VITE_APP_NAME
+export const APP_ENV  = runtimeConfig.VITE_APP_ENV

@@ -16,6 +16,7 @@ export default defineConfig({
       '@utils':      resolve(__dirname, 'src/utils'),
       '@styles':     resolve(__dirname, 'src/styles'),
       '@assets':     resolve(__dirname, 'src/assets'),
+      '@config':     resolve(__dirname, 'src/config'),
     },
   },
 })
