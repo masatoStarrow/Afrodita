@@ -1,3 +1,4 @@
+/* ── Breadcrumb ── */
 .breadcrumb {
   display: flex;
   align-items: center;
@@ -32,4 +33,240 @@
   font-weight: 500;
   color: var(--color-text-muted);
   opacity: 0.5;
+}
+
+/* ── Loading ── */
+.loadingState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-2xl);
+}
+
+/* ── Header card ── */
+.headerCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Type icon ── */
+.typeIcon {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconBgCall    { background: #d6f5ea; color: #1a7a52; }
+.iconBgEmail   { background: #dbeafe; color: #1d6db5; }
+.iconBgMeeting { background: #ede9fe; color: #6d28d9; }
+.iconBgTicket  { background: #fef3c7; color: #b45309; }
+.iconBgNote    { background: #f1f5f9; color: #475569; }
+
+/* ── Header info ── */
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.subject {
+  font-family: 'Arimo', sans-serif;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: #1a3a4a;
+  margin: 0;
+  line-height: 1.3;
+}
+
+/* ── Meta row ── */
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.typeLabel {
+  font-family: 'Arimo', sans-serif;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.metaDot {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Status badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: 'Arimo', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badgePending    { background: #fef3c7; color: #b45309; }
+.badgeInProgress { background: #dbeafe; color: #1d6db5; }
+.badgeResolved   { background: #d6f5ea; color: #1a7a52; }
+.badgeClosed     { background: #f1f5f9; color: #475569; }
+
+/* ── Body layout ── */
+.bodyGrid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+  align-items: start;
+}
+
+.mainCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  min-width: 0;
+}
+
+.sideCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* ── Section card ── */
+.descriptionCard {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: #eaf4f8;
+  color: #32687A;
+  border-bottom: 1px solid #d5e8f0;
+}
+
+.sectionTitle {
+  font-family: 'Arimo', sans-serif;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: #32687A;
+  margin: 0;
+}
+
+.sectionBody {
+  padding: var(--spacing-lg);
+}
+
+.descriptionText {
+  font-family: 'Arimo', sans-serif;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: 1.7;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.emptyText {
+  font-family: 'Arimo', sans-serif;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── Client card ── */
+.clientNameCard {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  background: #eaf4f8;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.clientAvatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clientNameInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.clientCompany {
+  font-family: 'Arimo', sans-serif;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: #1a3a4a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clientCompanySub {
+  font-family: 'Arimo', sans-serif;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clientMetaList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clientMetaItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Arimo', sans-serif;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+  .bodyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .headerCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

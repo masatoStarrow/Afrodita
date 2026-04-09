@@ -16,6 +16,11 @@ export const interactionsService = {
     return data.data
   },
 
+  getById: async (interactionId: string): Promise<Interaction> => {
+    const { data } = await apiClient.get<ApiResponse<Interaction>>(`/interactions/${interactionId}/`)
+    return data.data
+  },
+
   listByClient: async (clientId: string, params?: InteractionListParams): Promise<InteractionListData> => {
     const { data } = await apiClient.get<InteractionListResponse>(
       `/interactions/client/${clientId}/`,
