@@ -1,8 +1,13 @@
-import { Link, useParams } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { DashboardTemplate } from '@components/templates/DashboardTemplate'
 import { Spinner } from '@components/atoms/Spinner'
+import { Modal } from '@components/atoms/Modal/Modal'
+import { EditInteractionForm } from '@components/organisms/EditInteractionForm/EditInteractionForm'
 import { useClientDetail } from '@hooks/queries/useClients.query'
 import { useInteraction } from '@hooks/queries/useInteractions.query'
+import { useDeleteInteraction } from '@hooks/mutations/useInteraction.mutation'
+import { useRole } from '@hooks/useRole'
 import { ROUTES, buildRoute } from '@constants/routes.constants'
 import type { InteractionType, InteractionStatus } from '@app-types/interaction.types'
 import styles from './InteractionDetailPage.module.css'
@@ -42,6 +47,23 @@ const TicketIcon = () => (
 const NoteIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+  </svg>
+)
+
+const EditIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M8 2H3.33333C2.97971 2 2.64057 2.14048 2.39052 2.39052C2.14048 2.64057 2 2.97971 2 3.33333V12.6667C2 13.0203 2.14048 13.3594 2.39052 13.6095C2.64057 13.8595 2.97971 14 3.33333 14H12.6667C13.0203 14 13.3594 13.8595 13.6095 13.6095C13.8595 13.3594 14 13.0203 14 12.6667V8" stroke="white" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M12.2499 1.75C12.5151 1.48478 12.8748 1.33578 13.2499 1.33578C13.625 1.33578 13.9847 1.48478 14.2499 1.75C14.5151 2.01521 14.6641 2.37493 14.6641 2.75C14.6641 3.12507 14.5151 3.48478 14.2499 3.75L8.24123 9.75933C8.08293 9.9175 7.88737 10.0333 7.67257 10.096L5.75723 10.656C5.69987 10.6727 5.63906 10.6737 5.58117 10.6589C5.52329 10.6441 5.47045 10.614 5.4282 10.5717C5.38594 10.5294 5.35583 10.4766 5.341 10.4187C5.32617 10.3608 5.32717 10.3 5.3439 10.2427L5.9039 8.32733C5.96692 8.1127 6.08292 7.91737 6.24123 7.75933L12.2499 1.75Z" stroke="white" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
+
+const DeleteIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M2 4H14" stroke="white" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M12.6668 4V13.3333C12.6668 14 12.0002 14.6667 11.3335 14.6667H4.66683C4.00016 14.6667 3.3335 14 3.3335 13.3333V4" stroke="white" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M5.3335 4.00001V2.66668C5.3335 2.00001 6.00016 1.33334 6.66683 1.33334H9.3335C10.0002 1.33334 10.6668 2.00001 10.6668 2.66668V4.00001" stroke="white" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M6.6665 7.33334V11.3333" stroke="white" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M9.3335 7.33334V11.3333" stroke="white" strokeWidth="1.33333" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
 
@@ -129,8 +151,27 @@ export const InteractionDetailPage = () => {
     interactionId: string
   }>()
 
+  const navigate = useNavigate()
   const { data: client }      = useClientDetail(clientId ?? '')
   const { data: interaction, isLoading } = useInteraction(interactionId ?? '')
+  const { isAdmin, isSoporte } = useRole()
+  const canEdit = isAdmin || isSoporte
+  const canDelete = isAdmin
+
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  const deleteMutation = useDeleteInteraction()
+
+  const handleDelete = () => {
+    if (!interactionId) return
+    deleteMutation.mutate(interactionId, {
+      onSuccess: () => {
+        setShowDeleteConfirm(false)
+        navigate(buildRoute.clientDetail(clientId ?? ''))
+      },
+    })
+  }
 
   return (
     <DashboardTemplate>
@@ -172,6 +213,32 @@ export const InteractionDetailPage = () => {
                 </span>
               </div>
             </div>
+            {(canEdit || canDelete) && (
+              <div className={styles.headerActions}>
+                {canEdit && (
+                  <button
+                    type="button"
+                    className={styles.editBtn}
+                    onClick={() => setShowEditModal(true)}
+                    aria-label="Editar interacción"
+                  >
+                    <EditIcon />
+                    Editar
+                  </button>
+                )}
+                {canDelete && (
+                  <button
+                    type="button"
+                    className={styles.deleteBtn}
+                    onClick={() => setShowDeleteConfirm(true)}
+                    aria-label="Eliminar interacción"
+                  >
+                    <DeleteIcon />
+                    Eliminar
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           <div className={styles.bodyGrid}>
@@ -226,6 +293,59 @@ export const InteractionDetailPage = () => {
           </div>
         </>
       )}
+
+      {interaction && (
+        <Modal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          title="Editar Interacción"
+        >
+          <EditInteractionForm
+            interaction={interaction}
+            onCancel={() => setShowEditModal(false)}
+            onSuccess={() => setShowEditModal(false)}
+          />
+        </Modal>
+      )}
+
+      <Modal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Eliminar Interacción"
+      >
+        <div className={styles.confirmBody}>
+          <p className={styles.confirmText}>
+            ¿Estás seguro de que deseas eliminar esta interacción?
+          </p>
+          <p className={styles.confirmSubtext}>
+            La interacción no se eliminará físicamente, pero dejará de aparecer en los listados activos.
+          </p>
+          {deleteMutation.error && (
+            <p className={styles.confirmError}>
+              {(deleteMutation.error as { response?: { data?: { error?: { message?: string } } } })
+                ?.response?.data?.error?.message ?? 'Error al eliminar la interacción'}
+            </p>
+          )}
+          <div className={styles.confirmActions}>
+            <button
+              type="button"
+              className={styles.confirmCancelBtn}
+              onClick={() => setShowDeleteConfirm(false)}
+              disabled={deleteMutation.isPending}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className={styles.confirmDeleteBtn}
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Eliminando...' : 'Sí, eliminar'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </DashboardTemplate>
   )
 }

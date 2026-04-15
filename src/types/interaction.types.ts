@@ -38,6 +38,18 @@ export interface Interaction {
   updated_at:        string
 }
 
+export interface UpdateInteractionPayload {
+  type?:              InteractionType
+  channel?:           InteractionChannel
+  status?:            InteractionStatus
+  subject?:           string
+  notes?:             string | null
+  internal_notes?:    string | null
+  outcome?:           string | null
+  follow_up_date?:    string | null
+  duration_minutes?:  number | null
+}
+
 export type CreateInteractionResponse = ApiResponse<Interaction>
 
 export interface InteractionListData {

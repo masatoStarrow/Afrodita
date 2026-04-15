@@ -104,12 +104,12 @@ const STATUS_STYLE: Record<InteractionStatus, string> = {
   closed:      styles.badgeClosed,
 }
 
-const ICON_STATUS_STYLE: Record<InteractionStatus, string> = {
-  open:        styles.iconPending,
-  pending:     styles.iconPending,
-  in_progress: styles.iconInProgress,
-  resolved:    styles.iconResolved,
-  closed:      styles.iconClosed,
+const ICON_TYPE_STYLE: Record<InteractionType, string> = {
+  call:    styles.iconCall,
+  email:   styles.iconEmail,
+  meeting: styles.iconMeeting,
+  ticket:  styles.iconTicket,
+  note:    styles.iconNote,
 }
 
 const CARD_STATUS_STYLE: Record<InteractionStatus, string> = {
@@ -149,7 +149,7 @@ const InteractionCard = ({ interaction, agentName, clientId }: InteractionCardPr
     to={buildRoute.interactionDetail(clientId, interaction.id)}
     className={`${styles.card} ${CARD_STATUS_STYLE[interaction.status] ?? ''}`}>
     <div className={styles.cardTop}>
-      <div className={`${styles.cardIcon} ${ICON_STATUS_STYLE[interaction.status] ?? ''}`}>
+      <div className={`${styles.cardIcon} ${ICON_TYPE_STYLE[interaction.type] ?? ''}`}>
         <TypeIcon type={interaction.type} />
       </div>
       <div className={styles.cardMain}>

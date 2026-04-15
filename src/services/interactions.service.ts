@@ -3,6 +3,7 @@ import type { ApiResponse } from '@app-types/api.types'
 import type {
   Interaction,
   CreateInteractionPayload,
+  UpdateInteractionPayload,
   CreateInteractionResponse,
   InteractionListData,
   InteractionListResponse,
@@ -18,6 +19,16 @@ export const interactionsService = {
 
   getById: async (interactionId: string): Promise<Interaction> => {
     const { data } = await apiClient.get<ApiResponse<Interaction>>(`/interactions/${interactionId}/`)
+    return data.data
+  },
+
+  update: async (interactionId: string, payload: UpdateInteractionPayload): Promise<Interaction> => {
+    const { data } = await apiClient.put<ApiResponse<Interaction>>(`/interactions/${interactionId}/`, payload)
+    return data.data
+  },
+
+  delete: async (interactionId: string): Promise<Interaction> => {
+    const { data } = await apiClient.delete<ApiResponse<Interaction>>(`/interactions/${interactionId}/`)
     return data.data
   },
 
