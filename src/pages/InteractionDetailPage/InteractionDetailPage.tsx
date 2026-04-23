@@ -6,9 +6,11 @@ import { Modal } from '@components/atoms/Modal/Modal'
 import { EditInteractionForm } from '@components/organisms/EditInteractionForm/EditInteractionForm'
 import { useClientDetail } from '@hooks/queries/useClients.query'
 import { useInteraction } from '@hooks/queries/useInteractions.query'
+import { useAgentMap } from '@hooks/queries/useUsers.query'
 import { useDeleteInteraction } from '@hooks/mutations/useInteraction.mutation'
 import { useRole } from '@hooks/useRole'
 import { ROUTES, buildRoute } from '@constants/routes.constants'
+import { formatDate, formatTime, formatDuration } from '@utils/format.utils'
 import type { InteractionType, InteractionStatus } from '@app-types/interaction.types'
 import styles from './InteractionDetailPage.module.css'
 
@@ -101,6 +103,42 @@ const ClientPhoneIcon = () => (
   </svg>
 )
 
+const LockIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+)
+
+const LockMiniIcon = () => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+)
+
+const DocIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+  </svg>
+)
+
+const UserDetailIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+  </svg>
+)
+
+const CalendarIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
+  </svg>
+)
+
+const ClockIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+  </svg>
+)
+
 /* ── Maps ── */
 
 const TYPE_ICONS: Record<InteractionType, JSX.Element> = {
@@ -154,6 +192,7 @@ export const InteractionDetailPage = () => {
   const navigate = useNavigate()
   const { data: client }      = useClientDetail(clientId ?? '')
   const { data: interaction, isLoading } = useInteraction(interactionId ?? '')
+  const { data: agentMap = {} } = useAgentMap()
   const { isAdmin, isSoporte } = useRole()
   const canEdit = isAdmin || isSoporte
   const canDelete = isAdmin
@@ -255,6 +294,21 @@ export const InteractionDetailPage = () => {
                   }
                 </div>
               </section>
+
+              {interaction.internal_notes && (
+                <section className={styles.internalNotesCard} aria-label="Notas internas">
+                  <div className={styles.internalNotesHeader}>
+                    <LockIcon />
+                    <div className={styles.internalNotesTitleGroup}>
+                      <h2 className={styles.internalNotesTitle}>Notas internas</h2>
+                      <span className={styles.internalNotesSubtitle}>Solo visible para el equipo interno</span>
+                    </div>
+                  </div>
+                  <div className={styles.internalNotesBody}>
+                    <p className={styles.internalNotesText}>{interaction.internal_notes}</p>
+                  </div>
+                </section>
+              )}
             </div>
             <div className={styles.sideCol}>
               {client && (
@@ -289,6 +343,76 @@ export const InteractionDetailPage = () => {
                   </div>
                 </section>
               )}
+
+              <section className={styles.descriptionCard} aria-label="Detalles">
+                <div className={styles.sectionHeader}>
+                  <h2 className={styles.sectionTitle}>Detalles</h2>
+                </div>
+                <div className={styles.sectionBody}>
+                  <ul className={styles.detailsList}>
+                    <li className={styles.detailItem}>
+                      <span className={styles.detailIcon}><UserDetailIcon /></span>
+                      <div className={styles.detailContent}>
+                        <span className={styles.detailLabel}>Agente</span>
+                        <span className={styles.detailValue}>
+                          {agentMap[interaction.agent_id] ?? interaction.agent_id.slice(0, 8)}
+                        </span>
+                      </div>
+                    </li>
+                    <li className={styles.detailItem}>
+                      <span className={styles.detailIcon}><CalendarIcon /></span>
+                      <div className={styles.detailContent}>
+                        <span className={styles.detailLabel}>
+                          Fecha de creación <span className={styles.lockIndicator}><LockMiniIcon /></span>
+                        </span>
+                        <span className={styles.detailValue}>
+                          {formatDate(interaction.created_at)} a las {formatTime(interaction.created_at)}
+                        </span>
+                      </div>
+                    </li>
+                    <li className={styles.detailItem}>
+                      <span className={styles.detailIcon}><ClockIcon /></span>
+                      <div className={styles.detailContent}>
+                        <span className={styles.detailLabel}>
+                          Última actualización <span className={styles.lockIndicator}><LockMiniIcon /></span>
+                        </span>
+                        <span className={styles.detailValue}>
+                          {formatDate(interaction.updated_at)} a las {formatTime(interaction.updated_at)}
+                        </span>
+                      </div>
+                    </li>
+                    {interaction.duration_minutes && (
+                      <li className={styles.detailItem}>
+                        <span className={styles.detailIcon}><ClockIcon /></span>
+                        <div className={styles.detailContent}>
+                          <span className={styles.detailLabel}>Duración</span>
+                          <span className={styles.detailValue}>
+                            {formatDuration(interaction.duration_minutes)}
+                          </span>
+                        </div>
+                      </li>
+                    )}
+                    <li className={styles.detailItem}>
+                      <span className={styles.detailIcon}><DocIcon /></span>
+                      <div className={styles.detailContent}>
+                        <span className={styles.detailLabel}>Estado</span>
+                        <span className={`${styles.detailBadge} ${STATUS_STYLE[interaction.status]}`}>
+                          {STATUS_LABELS[interaction.status]}
+                        </span>
+                      </div>
+                    </li>
+                    <li className={styles.detailItem}>
+                      <span className={styles.detailIcon}><DocIcon /></span>
+                      <div className={styles.detailContent}>
+                        <span className={styles.detailLabel}>ID de interacción</span>
+                        <span className={styles.detailValueMono}>
+                          {interaction.id.split('-')[0]}
+                        </span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </section>
             </div>
           </div>
         </>
