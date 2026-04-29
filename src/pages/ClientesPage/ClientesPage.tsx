@@ -149,7 +149,7 @@ export const ClientesPage = () => {
       }
     }
     return map
-  }, [metrics?.per_client])
+  }, [metrics])
 
   const filtered = useMemo(() => {
     if (!data?.items) return []
@@ -160,7 +160,7 @@ export const ClientesPage = () => {
         c.company.toLowerCase().includes(q) ||
         c.email.toLowerCase().includes(q)
     )
-  }, [data?.items, search])
+  }, [data, search])
 
   return (
     <DashboardTemplate>
