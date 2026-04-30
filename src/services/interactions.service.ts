@@ -9,6 +9,7 @@ import type {
   InteractionListResponse,
   InteractionListParams,
   ClientSummary,
+  AuditEntry,
 } from '@app-types/interaction.types'
 
 export const interactionsService = {
@@ -43,6 +44,13 @@ export const interactionsService = {
   getClientSummary: async (clientId: string): Promise<ClientSummary> => {
     const { data } = await apiClient.get<ApiResponse<ClientSummary>>(
       `/interactions/client/${clientId}/summary/`,
+    )
+    return data.data
+  },
+
+  getAuditLog: async (interactionId: string): Promise<AuditEntry[]> => {
+    const { data } = await apiClient.get<ApiResponse<AuditEntry[]>>(
+      `/interactions/${interactionId}/audit/`,
     )
     return data.data
   },

@@ -5,6 +5,7 @@ import type { InteractionListParams } from '@app-types/interaction.types'
 export const INTERACTION_KEYS = {
   all:      ['interactions'] as const,
   detail:   (id: string) => ['interactions', 'detail', id] as const,
+  audit:    (id: string) => ['interactions', 'audit', id] as const,
   summary:  (clientId: string) => ['interactions', 'summary', clientId] as const,
   byClient: (clientId: string, params?: InteractionListParams) =>
     ['interactions', 'client', clientId, params] as const,
@@ -25,6 +26,15 @@ export const useClientInteractions = (clientId: string, params?: InteractionList
     queryFn:  () => interactionsService.listByClient(clientId, params),
     enabled:  !!clientId,
     staleTime: 1 * 60 * 1000,
+  })
+}
+
+export const useInteractionAudit = (interactionId: string) => {
+  return useQuery({
+    queryKey: INTERACTION_KEYS.audit(interactionId),
+    queryFn:  () => interactionsService.getAuditLog(interactionId),
+    enabled:  !!interactionId,
+    staleTime: 2 * 60 * 1000,
   })
 }
 

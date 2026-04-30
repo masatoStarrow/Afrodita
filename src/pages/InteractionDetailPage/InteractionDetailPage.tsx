@@ -5,13 +5,14 @@ import { Spinner } from '@components/atoms/Spinner'
 import { Modal } from '@components/atoms/Modal/Modal'
 import { EditInteractionForm } from '@components/organisms/EditInteractionForm/EditInteractionForm'
 import { useClientDetail } from '@hooks/queries/useClients.query'
-import { useInteraction } from '@hooks/queries/useInteractions.query'
+import { useInteraction, useInteractionAudit } from '@hooks/queries/useInteractions.query'
 import { useAgentMap } from '@hooks/queries/useUsers.query'
 import { useDeleteInteraction } from '@hooks/mutations/useInteraction.mutation'
+import { useAuthStore } from '@store/auth.store'
 import { useRole } from '@hooks/useRole'
 import { ROUTES, buildRoute } from '@constants/routes.constants'
 import { formatDate, formatTime, formatDuration } from '@utils/format.utils'
-import type { InteractionType, InteractionStatus } from '@app-types/interaction.types'
+import type { InteractionType, InteractionStatus, InteractionChannel } from '@app-types/interaction.types'
 import styles from './InteractionDetailPage.module.css'
 
 /* ── Icons ── */
@@ -121,6 +122,12 @@ const DocIcon = () => (
   </svg>
 )
 
+const AuditIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+  </svg>
+)
+
 const UserDetailIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
@@ -181,6 +188,41 @@ const TYPE_ICON_BG: Record<InteractionType, string> = {
   note:    styles.iconBgNote,
 }
 
+const CHANNEL_LABELS: Record<InteractionChannel, string> = {
+  phone:     'Teléfono',
+  email:     'Correo',
+  whatsapp:  'WhatsApp',
+  in_person: 'Presencial',
+  platform:  'Plataforma',
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  subject:          'Asunto',
+  notes:            'Descripción',
+  internal_notes:   'Notas internas',
+  status:           'Estado',
+  type:             'Tipo',
+  channel:          'Canal',
+  outcome:          'Resultado',
+  follow_up_date:   'Fecha de seguimiento',
+  duration_minutes: 'Duración (min)',
+  interaction_date: 'Fecha de interacción',
+}
+
+const VALUE_LABELS: Record<string, Record<string, string>> = {
+  status:  STATUS_LABELS,
+  type:    TYPE_LABELS,
+  channel: CHANNEL_LABELS,
+}
+
+const translateField = (fieldName: string): string =>
+  FIELD_LABELS[fieldName] ?? fieldName
+
+const translateValue = (fieldName: string, value: string | null): string => {
+  if (!value) return '—'
+  return VALUE_LABELS[fieldName]?.[value] ?? value
+}
+
 /* ── Page ── */
 
 export const InteractionDetailPage = () => {
@@ -192,9 +234,12 @@ export const InteractionDetailPage = () => {
   const navigate = useNavigate()
   const { data: client }      = useClientDetail(clientId ?? '')
   const { data: interaction, isLoading } = useInteraction(interactionId ?? '')
+  const { data: auditEntries = [] } = useInteractionAudit(interactionId ?? '')
   const { data: agentMap = {} } = useAgentMap()
-  const { isAdmin, isSoporte } = useRole()
-  const canEdit = isAdmin || isSoporte
+  const user = useAuthStore((s) => s.user)
+  const { isAdmin, isSoporte, isComercial } = useRole()
+  const isOwner = interaction?.agent_id === user?.id
+  const canEdit = isAdmin || isSoporte || (isComercial && isOwner)
   const canDelete = isAdmin
 
   const [showEditModal, setShowEditModal] = useState(false)
@@ -309,6 +354,58 @@ export const InteractionDetailPage = () => {
                   </div>
                 </section>
               )}
+
+              <section className={styles.auditCard} aria-label="Trazabilidad">
+                <div className={styles.auditHeader}>
+                  <AuditIcon />
+                  <h2 className={styles.auditTitle}>Trazabilidad</h2>
+                </div>
+                <div className={styles.auditBody}>
+                  {auditEntries.length > 0 && (
+                    <div className={styles.auditEditors}>
+                      <h3 className={styles.auditEditorsTitle}>Editores</h3>
+                      <ul className={styles.auditEditorsList}>
+                        {[...new Set(auditEntries.map(e => e.edited_by))].map(editorId => (
+                          <li key={editorId} className={styles.auditEditorChip}>
+                            {agentMap[editorId] ?? editorId.slice(0, 8)}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {auditEntries.length > 0 ? (
+                    <>
+                      <h3 className={styles.auditLogTitle}>Historial de cambios</h3>
+                      <div className={styles.auditTimeline}>
+                        {auditEntries.map(entry => (
+                          <div key={entry.id} className={styles.auditEntry}>
+                            <span className={styles.auditEntryDot} />
+                            <div className={styles.auditEntryContent}>
+                              <span className={styles.auditEntryField}>{translateField(entry.field_name)}</span>
+                              <span className={styles.auditEntryChange}>
+                                {entry.previous_value && (
+                                  <span className={styles.auditPrevValue}>
+                                    {translateValue(entry.field_name, entry.previous_value)}
+                                  </span>
+                                )}
+                                <span className={styles.auditNewValue}>
+                                  {translateValue(entry.field_name, entry.new_value)}
+                                </span>
+                              </span>
+                              <span className={styles.auditEntryMeta}>
+                                {agentMap[entry.edited_by] ?? entry.edited_by.slice(0, 8)} · {formatDate(entry.edited_at)} {formatTime(entry.edited_at)}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p className={styles.auditEmpty}>Sin modificaciones registradas</p>
+                  )}
+                </div>
+              </section>
             </div>
             <div className={styles.sideCol}>
               {client && (

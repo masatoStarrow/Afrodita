@@ -77,6 +77,16 @@ export interface InteractionListParams {
   order_dir?: 'asc' | 'desc'
 }
 
+export interface AuditEntry {
+  id:             string
+  interaction_id: string
+  edited_by:      string
+  edited_at:      string
+  field_name:     string
+  previous_value: string | null
+  new_value:      string | null
+}
+
 export interface ClientSummary {
   client_id:                string
   total_interactions:       number
