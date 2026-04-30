@@ -361,49 +361,57 @@ export const InteractionDetailPage = () => {
                   <h2 className={styles.auditTitle}>Trazabilidad</h2>
                 </div>
                 <div className={styles.auditBody}>
-                  {auditEntries.length > 0 && (
-                    <div className={styles.auditEditors}>
-                      <h3 className={styles.auditEditorsTitle}>Editores</h3>
-                      <ul className={styles.auditEditorsList}>
-                        {[...new Set(auditEntries.map(e => e.edited_by))].map(editorId => (
-                          <li key={editorId} className={styles.auditEditorChip}>
-                            {agentMap[editorId] ?? editorId.slice(0, 8)}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {auditEntries.length > 0 ? (
-                    <>
-                      <h3 className={styles.auditLogTitle}>Historial de cambios</h3>
-                      <div className={styles.auditTimeline}>
-                        {auditEntries.map(entry => (
-                          <div key={entry.id} className={styles.auditEntry}>
-                            <span className={styles.auditEntryDot} />
-                            <div className={styles.auditEntryContent}>
-                              <span className={styles.auditEntryField}>{translateField(entry.field_name)}</span>
-                              <span className={styles.auditEntryChange}>
-                                {entry.previous_value && (
-                                  <span className={styles.auditPrevValue}>
-                                    {translateValue(entry.field_name, entry.previous_value)}
-                                  </span>
-                                )}
-                                <span className={styles.auditNewValue}>
-                                  {translateValue(entry.field_name, entry.new_value)}
-                                </span>
-                              </span>
-                              <span className={styles.auditEntryMeta}>
-                                {agentMap[entry.edited_by] ?? entry.edited_by.slice(0, 8)} · {formatDate(entry.edited_at)} {formatTime(entry.edited_at)}
-                              </span>
-                            </div>
+                  {(() => {
+                    const VISIBLE_FIELDS = ['type', 'status', 'subject', 'notes', 'internal_notes']
+                    const filtered = auditEntries.filter(e => VISIBLE_FIELDS.includes(e.field_name))
+                    return (
+                      <>
+                        {filtered.length > 0 && (
+                          <div className={styles.auditEditors}>
+                            <h3 className={styles.auditEditorsTitle}>Editores</h3>
+                            <ul className={styles.auditEditorsList}>
+                              {[...new Set(filtered.map(e => e.edited_by))].map(editorId => (
+                                <li key={editorId} className={styles.auditEditorChip}>
+                                  {agentMap[editorId] ?? editorId.slice(0, 8)}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    <p className={styles.auditEmpty}>Sin modificaciones registradas</p>
-                  )}
+                        )}
+
+                        {filtered.length > 0 ? (
+                          <>
+                            <h3 className={styles.auditLogTitle}>Historial de cambios</h3>
+                            <div className={styles.auditTimeline}>
+                              {filtered.map(entry => (
+                                <div key={entry.id} className={styles.auditEntry}>
+                                  <span className={styles.auditEntryDot} />
+                                  <div className={styles.auditEntryContent}>
+                                    <span className={styles.auditEntryField}>{translateField(entry.field_name)}</span>
+                                    <span className={styles.auditEntryChange}>
+                                      {entry.previous_value && (
+                                        <span className={styles.auditPrevValue}>
+                                          {translateValue(entry.field_name, entry.previous_value)}
+                                        </span>
+                                      )}
+                                      <span className={styles.auditNewValue}>
+                                        {translateValue(entry.field_name, entry.new_value)}
+                                      </span>
+                                    </span>
+                                    <span className={styles.auditEntryMeta}>
+                                      {agentMap[entry.edited_by] ?? entry.edited_by.slice(0, 8)} · {formatDate(entry.edited_at)} {formatTime(entry.edited_at)}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        ) : (
+                          <p className={styles.auditEmpty}>Sin modificaciones registradas</p>
+                        )}
+                      </>
+                    )
+                  })()}
                 </div>
               </section>
             </div>
