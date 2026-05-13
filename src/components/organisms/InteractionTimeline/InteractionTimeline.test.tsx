@@ -47,47 +47,47 @@ const findByClassSubstring = (container: HTMLElement, substring: string): HTMLEl
 describe('InteractionTimeline — Renderizado básico', () => {
 
   it('muestra el mensaje de vacío si no hay interacciones', () => {
-    renderWithRouter(<InteractionTimeline interactions={[]} />)
+    renderWithRouter(<InteractionTimeline interactions={[]} clientId="client-1" />)
     expect(
       screen.getByText('No se encontraron interacciones para este cliente.')
     ).toBeInTheDocument()
   })
 
   it('no muestra mensaje de vacío cuando hay interacciones', () => {
-    renderWithRouter(<InteractionTimeline interactions={[baseInteraction]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[baseInteraction]} agentMap={agentMap} clientId="client-1" />)
     expect(
       screen.queryByText('No se encontraron interacciones para este cliente.')
     ).not.toBeInTheDocument()
   })
 
   it('renderiza el asunto de la interacción', () => {
-    renderWithRouter(<InteractionTimeline interactions={[baseInteraction]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[baseInteraction]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Llamada de seguimiento')).toBeInTheDocument()
   })
 
   it('renderiza las notas de la interacción', () => {
-    renderWithRouter(<InteractionTimeline interactions={[baseInteraction]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[baseInteraction]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Cliente interesado')).toBeInTheDocument()
   })
 
   it('muestra el nombre del agente cuando está en el mapa', () => {
-    renderWithRouter(<InteractionTimeline interactions={[baseInteraction]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[baseInteraction]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Ana García')).toBeInTheDocument()
   })
 
   it('muestra un fragmento del ID del agente si no está en el mapa', () => {
-    renderWithRouter(<InteractionTimeline interactions={[baseInteraction]} agentMap={{}} />)
+    renderWithRouter(<InteractionTimeline interactions={[baseInteraction]} agentMap={{}} clientId="client-1" />)
     expect(screen.getByText('agent-1')).toBeInTheDocument()
   })
 
   it('muestra la duración cuando está definida', () => {
-    renderWithRouter(<InteractionTimeline interactions={[baseInteraction]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[baseInteraction]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('15 min')).toBeInTheDocument()
   })
 
   it('no muestra duración cuando no está definida', () => {
     const interaction = makeInteraction({ duration_minutes: null })
-    renderWithRouter(<InteractionTimeline interactions={[interaction]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[interaction]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.queryByText(/min/)).not.toBeInTheDocument()
   })
 })
@@ -95,27 +95,27 @@ describe('InteractionTimeline — Renderizado básico', () => {
 describe('InteractionTimeline — Labels de tipo', () => {
 
   it('muestra "Llamada" para tipo call', () => {
-    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ type: 'call' })]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ type: 'call' })]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Llamada')).toBeInTheDocument()
   })
 
   it('muestra "Correo" para tipo email', () => {
-    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ id: 'e', type: 'email' })]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ id: 'e', type: 'email' })]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Correo')).toBeInTheDocument()
   })
 
   it('muestra "Reunión" para tipo meeting', () => {
-    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ id: 'm', type: 'meeting' })]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ id: 'm', type: 'meeting' })]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Reunión')).toBeInTheDocument()
   })
 
   it('muestra "Mensaje" para tipo ticket', () => {
-    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ id: 't', type: 'ticket' })]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ id: 't', type: 'ticket' })]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Mensaje')).toBeInTheDocument()
   })
 
   it('muestra "Nota" para tipo note', () => {
-    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ id: 'n', type: 'note' })]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ id: 'n', type: 'note' })]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Nota')).toBeInTheDocument()
   })
 })
@@ -123,22 +123,22 @@ describe('InteractionTimeline — Labels de tipo', () => {
 describe('InteractionTimeline — Badges de estado', () => {
 
   it('muestra badge "Pendiente" para status pending', () => {
-    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ status: 'pending' })]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ status: 'pending' })]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Pendiente')).toBeInTheDocument()
   })
 
   it('muestra badge "En progreso" para status in_progress', () => {
-    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ status: 'in_progress' })]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ status: 'in_progress' })]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('En progreso')).toBeInTheDocument()
   })
 
   it('muestra badge "Resuelto" para status resolved', () => {
-    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ status: 'resolved' })]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ status: 'resolved' })]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Resuelto')).toBeInTheDocument()
   })
 
   it('muestra badge "Cerrado" para status closed', () => {
-    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ status: 'closed' })]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[makeInteraction({ status: 'closed' })]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Cerrado')).toBeInTheDocument()
   })
 })
@@ -147,7 +147,7 @@ describe('InteractionTimeline — Colores por estado en ícono y card', () => {
 
   it.skip('aplica clase de ícono pending cuando el estado es pending', () => {
     const { container } = renderWithRouter(
-      <InteractionTimeline interactions={[makeInteraction({ status: 'pending' })]} agentMap={agentMap} />
+      <InteractionTimeline interactions={[makeInteraction({ status: 'pending' })]} agentMap={agentMap} clientId="client-1" />
     )
     const icon = findByClassSubstring(container, 'cardIcon')
     expect(icon).not.toBeNull()
@@ -156,7 +156,7 @@ describe('InteractionTimeline — Colores por estado en ícono y card', () => {
 
   it.skip('aplica clase de ícono in_progress cuando el estado es in_progress', () => {
     const { container } = renderWithRouter(
-      <InteractionTimeline interactions={[makeInteraction({ status: 'in_progress' })]} agentMap={agentMap} />
+      <InteractionTimeline interactions={[makeInteraction({ status: 'in_progress' })]} agentMap={agentMap} clientId="client-1" />
     )
     const icon = findByClassSubstring(container, 'cardIcon')
     expect(icon).not.toBeNull()
@@ -165,7 +165,7 @@ describe('InteractionTimeline — Colores por estado en ícono y card', () => {
 
   it.skip('aplica clase de ícono resolved cuando el estado es resolved', () => {
     const { container } = renderWithRouter(
-      <InteractionTimeline interactions={[makeInteraction({ status: 'resolved' })]} agentMap={agentMap} />
+      <InteractionTimeline interactions={[makeInteraction({ status: 'resolved' })]} agentMap={agentMap} clientId="client-1" />
     )
     const icon = findByClassSubstring(container, 'cardIcon')
     expect(icon).not.toBeNull()
@@ -174,7 +174,7 @@ describe('InteractionTimeline — Colores por estado en ícono y card', () => {
 
   it.skip('aplica clase de ícono closed cuando el estado es closed', () => {
     const { container } = renderWithRouter(
-      <InteractionTimeline interactions={[makeInteraction({ status: 'closed' })]} agentMap={agentMap} />
+      <InteractionTimeline interactions={[makeInteraction({ status: 'closed' })]} agentMap={agentMap} clientId="client-1" />
     )
     const icon = findByClassSubstring(container, 'cardIcon')
     expect(icon).not.toBeNull()
@@ -183,7 +183,7 @@ describe('InteractionTimeline — Colores por estado en ícono y card', () => {
 
   it('aplica clase de card pending cuando el estado es pending', () => {
     renderWithRouter(
-      <InteractionTimeline interactions={[makeInteraction({ status: 'closed' })]} agentMap={agentMap} />
+      <InteractionTimeline interactions={[makeInteraction({ status: 'closed' })]} agentMap={agentMap} clientId="client-1" />
     )
     const heading = screen.getByText('Llamada de seguimiento')
     const card = heading.parentElement!.parentElement!.parentElement!
@@ -198,7 +198,7 @@ describe('InteractionTimeline — Agrupación por fecha', () => {
       makeInteraction({ id: 'int-1', interaction_date: '2026-03-18T10:00:00Z' }),
       makeInteraction({ id: 'int-2', interaction_date: '2026-03-18T15:00:00Z', subject: 'Otra llamada' }),
     ]
-    const { container } = renderWithRouter(<InteractionTimeline interactions={interactions} agentMap={agentMap} />)
+    const { container } = renderWithRouter(<InteractionTimeline interactions={interactions} agentMap={agentMap} clientId="client-1" />)
     const dateHeaders = container.querySelectorAll('[class*="dateGroup"]')
     expect(dateHeaders).toHaveLength(1)
   })
@@ -208,7 +208,7 @@ describe('InteractionTimeline — Agrupación por fecha', () => {
       makeInteraction({ id: 'int-1', interaction_date: '2026-03-18T10:00:00Z' }),
       makeInteraction({ id: 'int-2', interaction_date: '2026-03-17T10:00:00Z', subject: 'Ayer' }),
     ]
-    const { container } = renderWithRouter(<InteractionTimeline interactions={interactions} agentMap={agentMap} />)
+    const { container } = renderWithRouter(<InteractionTimeline interactions={interactions} agentMap={agentMap} clientId="client-1" />)
     const dateHeaders = container.querySelectorAll('[class*="dateGroup"]')
     expect(dateHeaders).toHaveLength(2)
   })
@@ -218,7 +218,7 @@ describe('InteractionTimeline — Agrupación por fecha', () => {
       makeInteraction({ id: 'int-1', interaction_date: '2026-03-18T10:00:00Z', subject: 'Primera' }),
       makeInteraction({ id: 'int-2', interaction_date: '2026-03-18T15:00:00Z', subject: 'Segunda' }),
     ]
-    renderWithRouter(<InteractionTimeline interactions={interactions} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={interactions} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Primera')).toBeInTheDocument()
     expect(screen.getByText('Segunda')).toBeInTheDocument()
   })
@@ -228,14 +228,14 @@ describe('InteractionTimeline — Notas internas', () => {
 
   it('muestra la sección de notas internas cuando existen', () => {
     const interaction = makeInteraction({ internal_notes: 'Dato confidencial' })
-    renderWithRouter(<InteractionTimeline interactions={[interaction]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[interaction]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.getByText('Notas internas')).toBeInTheDocument()
     expect(screen.getByText('Dato confidencial')).toBeInTheDocument()
   })
 
   it('no muestra la sección de notas internas cuando no existen', () => {
     const interaction = makeInteraction({ internal_notes: null })
-    renderWithRouter(<InteractionTimeline interactions={[interaction]} agentMap={agentMap} />)
+    renderWithRouter(<InteractionTimeline interactions={[interaction]} agentMap={agentMap} clientId="client-1" />)
     expect(screen.queryByText('Notas internas')).not.toBeInTheDocument()
   })
 })

@@ -148,7 +148,7 @@ const ClockIcon = () => (
 
 /* ── Maps ── */
 
-const TYPE_ICONS: Record<InteractionType, JSX.Element> = {
+const TYPE_ICONS: Record<InteractionType, React.JSX.Element> = {
   call:    <CallIcon />,
   email:   <MailIcon />,
   meeting: <MeetingIcon />,
