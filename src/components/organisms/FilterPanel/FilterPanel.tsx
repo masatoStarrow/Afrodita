@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useCallback, useEffect } from 'react'
 import type { InteractionType, InteractionStatus } from '@app-types/interaction.types'
 import styles from './FilterPanel.module.css'
