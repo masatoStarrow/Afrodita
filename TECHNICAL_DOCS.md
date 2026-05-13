@@ -47,6 +47,8 @@ Afrodita/
 │   │   │   ├── NavItem/
 │   │   │   └── UserMenu/
 │   │   ├── organisms/               # Secciones complejas de UI
+│   │   │   ├── EditInteractionForm/
+│   │   │   ├── FilterPanel/
 │   │   │   ├── Footer/
 │   │   │   ├── Header/
 │   │   │   ├── InteractionTimeline/
@@ -74,6 +76,7 @@ Afrodita/
 │   │   ├── ClienteDetailPage/
 │   │   ├── ClientesPage/
 │   │   ├── DashboardPage/
+│   │   ├── InteractionDetailPage/
 │   │   └── LoginPage/
 │   ├── router/                      # Configuración de rutas
 │   │   ├── index.tsx
@@ -123,9 +126,9 @@ La aplicación sigue el patrón **Atomic Design** para organizar los componentes
 |-------|-------------|----------|
 | **Atoms** | Componentes base indivisibles que no dependen de otros componentes del proyecto | `Button`, `Input`, `Spinner`, `Avatar`, `Modal`, `Label`, `Logo`, `Icon`, `Text` |
 | **Molecules** | Combinaciones de átomos que forman una unidad funcional | `FormField` (Label + Input), `AlertMessage`, `NavItem`, `UserMenu` |
-| **Organisms** | Secciones complejas compuestas de múltiples moléculas y átomos | `Header`, `Footer`, `LoginForm`, `InteractionTimeline`, `NewInteractionForm` |
+| **Organisms** | Secciones complejas compuestas de múltiples moléculas y átomos | `Header`, `Footer`, `LoginForm`, `InteractionTimeline`, `NewInteractionForm`, `EditInteractionForm`, `FilterPanel` |
 | **Templates** | Layouts de página que definen la estructura general | `AuthTemplate` (para login), `DashboardTemplate` (para vistas protegidas) |
-| **Pages** | Instancias de templates con datos reales | `LoginPage`, `ClientesPage`, `ClienteDetailPage`, `DashboardPage` |
+| **Pages** | Instancias de templates con datos reales | `LoginPage`, `ClientesPage`, `ClienteDetailPage`, `InteractionDetailPage`, `DashboardPage` (placeholder, no enrutada) |
 
 ### 2.3 Diagrama de Capas
 
@@ -204,8 +207,9 @@ Se configuraron path aliases en `tsconfig.json` y `vite.config.ts` para simplifi
 | Ruta | Componente | Protección | Descripción |
 |------|------------|------------|-------------|
 | `/login` | `LoginPage` | Pública (redirige a dashboard si ya está autenticado) | Formulario de inicio de sesión |
-| `/dashboard` | `ClientesPage` | Protegida (requiere token) | Lista de clientes con métricas |
+| `/dashboard` | `ClientesPage` | Protegida (requiere token) | Lista de clientes con métricas. `DashboardPage` es un placeholder no enrutado |
 | `/dashboard/clientes/:id` | `ClienteDetailPage` | Protegida (requiere token) | Detalle de un cliente con historial de interacciones |
+| `/dashboard/clientes/:clientId/interacciones/:interactionId` | `InteractionDetailPage` | Protegida (requiere token) | Detalle de una interacción con auditoría |
 | `*` | — | — | Redirige a `/login` |
 
 ### 4.2 Guardias de Ruta
@@ -218,9 +222,10 @@ Se configuraron path aliases en `tsconfig.json` y `vite.config.ts` para simplifi
 Todas las páginas se cargan de forma lazy con `React.lazy()` y `Suspense`, lo que reduce el bundle inicial y mejora el tiempo de carga:
 
 ```typescript
-const LoginPage         = lazy(() => import('@pages/LoginPage/LoginPage'))
-const ClientesPage      = lazy(() => import('@pages/ClientesPage/ClientesPage'))
-const ClienteDetailPage = lazy(() => import('@pages/ClienteDetailPage/ClienteDetailPage'))
+const LoginPage              = lazy(() => import('@pages/LoginPage/LoginPage'))
+const ClientesPage           = lazy(() => import('@pages/ClientesPage/ClientesPage'))
+const ClienteDetailPage      = lazy(() => import('@pages/ClienteDetailPage/ClienteDetailPage'))
+const InteractionDetailPage  = lazy(() => import('@pages/InteractionDetailPage/InteractionDetailPage'))
 ```
 
 ---
@@ -296,6 +301,11 @@ Se usa una instancia centralizada de Axios con:
 |--------|----------|-------------|
 | `create(payload)` | `POST /interactions/` | Crea una nueva interacción |
 | `listByClient(clientId, params?)` | `GET /interactions/client/:clientId/` | Lista paginada de interacciones de un cliente |
+| `getById(interactionId)` | `GET /interactions/:id/` | Detalle de una interacción |
+| `update(interactionId, payload)` | `PUT /interactions/:id/` | Actualiza una interacción existente |
+| `delete(interactionId)` | `DELETE /interactions/:id/` | Elimina (soft-delete) una interacción |
+| `getClientSummary(clientId)` | `GET /interactions/client/:clientId/summary/` | Resumen de interacciones de un cliente |
+| `getAuditLog(interactionId)` | `GET /interactions/:id/audit/` | Historial de auditoría de una interacción |
 
 #### `metrics.service.ts` — Métricas
 
@@ -323,14 +333,19 @@ Se usa una instancia centralizada de Axios con:
 | `useClientInteractions(clientId, params?)` | `interactionsService.listByClient` | `['interactions', 'client', clientId, params]` | 1 min | Interacciones de un cliente |
 | `useMetrics()` | `metricsService.getMetrics` | `['metrics', 'global']` | 2 min | Métricas globales del CRM |
 | `useAgentMap()` | `usersService.getAgentMap` | `['users', 'agentMap']` | 10 min | Mapa de IDs de agente a nombres |
+| `useInteraction(interactionId)` | `interactionsService.getById` | `['interactions', 'detail', interactionId]` | 2 min | Detalle de una interacción |
+| `useInteractionAudit(interactionId)` | `interactionsService.getAuditLog` | `['interactions', 'audit', interactionId]` | 2 min | Historial de auditoría de una interacción |
+| `useClientSummary(clientId)` | `interactionsService.getClientSummary` | `['interactions', 'summary', clientId]` | 2 min | Resumen de interacciones de un cliente |
 
 ### 7.2 Mutation Hooks (escritura de datos)
 
 | Hook | Servicio | Invalidaciones | Descripción |
 |------|----------|----------------|-------------|
 | `useLoginMutation()` | `authService.login` + `authService.getMe` | — | Login: obtiene token, luego datos del usuario |
-| `useLogoutMutation()` | `authService.logout` | Limpia auth store | Cierra sesión |
+| `useLogoutMutation()` | `authService.logout` | Limpia todo el cache de React Query + auth store (usa `onSettled`) | Cierra sesión |
 | `useCreateInteraction()` | `interactionsService.create` | `metrics.*`, `interactions.*` | Crea interacción e invalida caché relacionado |
+| `useUpdateInteraction()` | `interactionsService.update` | `metrics.*`, `interactions.*` | Actualiza interacción e invalida caché relacionado |
+| `useDeleteInteraction()` | `interactionsService.delete` | `metrics.*`, `interactions.*` | Elimina (soft-delete) interacción e invalida caché relacionado |
 
 ### 7.3 Otros Hooks
 
@@ -386,13 +401,17 @@ interface PaginatedResponse<T> {
 |------|---------|
 | `InteractionType` | `'call' \| 'email' \| 'meeting' \| 'ticket' \| 'note'` |
 | `InteractionChannel` | `'phone' \| 'email' \| 'whatsapp' \| 'in_person' \| 'platform'` |
-| `InteractionStatus` | `'pending' \| 'in_progress' \| 'resolved' \| 'closed'` |
+| `InteractionStatus` | `'open' \| 'pending' \| 'in_progress' \| 'resolved' \| 'closed'` |
 
 | Tipo | Campos principales |
 |------|-------------------|
-| `Interaction` | `id`, `client_id`, `agent_id`, `type`, `channel`, `subject`, `status`, `notes`, `internal_notes`, `outcome`, `interaction_date`, `follow_up_date`, `duration_minutes`, `is_deleted`, `created_at`, `updated_at` |
+| `Interaction` | `id`, `client_id`, `agent_id`, `type`, `channel`, `subject`, `status`, `notes`, `internal_notes`, `outcome`, `interaction_date`, `follow_up_date`, `duration_minutes`, `is_deleted`, `last_edited_by`, `created_at`, `updated_at` |
 | `CreateInteractionPayload` | `client_id`, `type`, `channel`, `subject`, `status`, `interaction_date`, `notes?`, `internal_notes?`, `outcome?`, `follow_up_date?`, `duration_minutes?` |
 | `InteractionListParams` | `page?`, `page_size?`, `type?`, `status?`, `date_from?`, `date_to?`, `agent_id?`, `order_by?`, `order_dir?` |
+| `UpdateInteractionPayload` | `type?`, `channel?`, `subject?`, `status?`, `notes?`, `internal_notes?`, `outcome?`, `follow_up_date?`, `duration_minutes?` |
+| `AuditEntry` | `id`, `interaction_id`, `changed_by`, `action`, `changes`, `timestamp` |
+| `ClientSummary` | `client_id`, `total_interactions`, `by_status: Record<InteractionStatus, number>`, `by_type: Record<InteractionType, number>`, `last_interaction_date` |
+| `InteractionListData` | `items: Interaction[]`, `total`, `page`, `page_size`, `pages` |
 
 ### 8.5 Tipos de Métricas (`metrics.types.ts`)
 
@@ -435,6 +454,7 @@ interface PaginatedResponse<T> {
 | `ROUTES.LOGIN` | `/login` |
 | `ROUTES.DASHBOARD` | `/dashboard` |
 | `ROUTES.CLIENT_DETAIL` | `/dashboard/clientes/:id` |
+| `ROUTES.INTERACTION_DETAIL` | `/dashboard/clientes/:clientId/interacciones/:interactionId` |
 
 ### 10.2 Roles (`roles.constants.ts`)
 
@@ -567,6 +587,11 @@ Usuarios       Métricas
 | Venus | `/interactions/` | POST | Crear interacción |
 | Venus | `/interactions/client/:id/` | GET | Interacciones de un cliente |
 | Venus | `/interactions/metrics/` | GET | Métricas globales |
+| Venus | `/interactions/:id/` | GET | Detalle de una interacción |
+| Venus | `/interactions/:id/` | PUT | Actualizar una interacción |
+| Venus | `/interactions/:id/` | DELETE | Eliminar una interacción |
+| Venus | `/interactions/client/:id/summary/` | GET | Resumen de interacciones de un cliente |
+| Venus | `/interactions/:id/audit/` | GET | Historial de auditoría de una interacción |
 
 ### 13.3 Flujo de Autenticación
 
@@ -591,9 +616,9 @@ Usuarios       Métricas
 | `@tanstack/react-query` | ^5.90.21 | Gestión de estado del servidor |
 | `zustand` | ^5.0.11 | Estado global del cliente |
 | `axios` | ^1.13.6 | Cliente HTTP |
-| `react-hook-form` | ^7.71.2 | Gestión de formularios |
-| `@hookform/resolvers` | ^5.2.2 | Integración de validadores con RHF |
-| `zod` | ^4.3.6 | Validación de esquemas |
+| `react-hook-form` | ^7.71.2 | Gestión de formularios (solo `LoginForm`) |
+| `@hookform/resolvers` | ^5.2.2 | Integración de validadores con RHF (solo `LoginForm`) |
+| `zod` | ^4.3.6 | Validación de esquemas (solo `LoginForm`). `NewInteractionForm` y `EditInteractionForm` usan validación manual con `useState` |
 
 ### 14.2 Dependencias de Desarrollo
 

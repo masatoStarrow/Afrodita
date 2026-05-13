@@ -1,10 +1,11 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { authService } from '@services/auth.service'
 import { useAuthStore } from '@store/auth.store'
 import type { LoginRequest } from '@app-types/auth.types'
 
 export const useLoginMutation = () => {
   const setAuth = useAuthStore((s) => s.setAuth)
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (credentials: LoginRequest) => {
@@ -13,6 +14,7 @@ export const useLoginMutation = () => {
       return { access_token, token_type, user }
     },
     onSuccess: ({ access_token, user }) => {
+      queryClient.clear()
       setAuth(access_token, user)
     },
   })
@@ -20,10 +22,12 @@ export const useLoginMutation = () => {
 
 export const useLogoutMutation = () => {
   const clearAuth = useAuthStore((s) => s.clearAuth)
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: () => authService.logout(),
     onSettled: () => {
+      queryClient.clear()
       clearAuth()
     },
   })

@@ -3,16 +3,33 @@ import type { ApiResponse } from '@app-types/api.types'
 import type {
   Interaction,
   CreateInteractionPayload,
+  UpdateInteractionPayload,
   CreateInteractionResponse,
   InteractionListData,
   InteractionListResponse,
   InteractionListParams,
   ClientSummary,
+  AuditEntry,
 } from '@app-types/interaction.types'
 
 export const interactionsService = {
   create: async (payload: CreateInteractionPayload): Promise<Interaction> => {
     const { data } = await apiClient.post<CreateInteractionResponse>('/interactions/', payload)
+    return data.data
+  },
+
+  getById: async (interactionId: string): Promise<Interaction> => {
+    const { data } = await apiClient.get<ApiResponse<Interaction>>(`/interactions/${interactionId}/`)
+    return data.data
+  },
+
+  update: async (interactionId: string, payload: UpdateInteractionPayload): Promise<Interaction> => {
+    const { data } = await apiClient.put<ApiResponse<Interaction>>(`/interactions/${interactionId}/`, payload)
+    return data.data
+  },
+
+  delete: async (interactionId: string): Promise<Interaction> => {
+    const { data } = await apiClient.delete<ApiResponse<Interaction>>(`/interactions/${interactionId}/`)
     return data.data
   },
 
@@ -27,6 +44,13 @@ export const interactionsService = {
   getClientSummary: async (clientId: string): Promise<ClientSummary> => {
     const { data } = await apiClient.get<ApiResponse<ClientSummary>>(
       `/interactions/client/${clientId}/summary/`,
+    )
+    return data.data
+  },
+
+  getAuditLog: async (interactionId: string): Promise<AuditEntry[]> => {
+    const { data } = await apiClient.get<ApiResponse<AuditEntry[]>>(
+      `/interactions/${interactionId}/audit/`,
     )
     return data.data
   },

@@ -2,7 +2,7 @@ import type { ApiResponse } from './api.types'
 
 export type InteractionType    = 'call' | 'email' | 'meeting' | 'ticket' | 'note'
 export type InteractionChannel = 'phone' | 'email' | 'whatsapp' | 'in_person' | 'platform'
-export type InteractionStatus  = 'pending' | 'in_progress' | 'resolved' | 'closed'
+export type InteractionStatus  = 'open' | 'pending' | 'in_progress' | 'resolved' | 'closed'
 
 export interface CreateInteractionPayload {
   client_id:         string
@@ -38,6 +38,18 @@ export interface Interaction {
   updated_at:        string
 }
 
+export interface UpdateInteractionPayload {
+  type?:              InteractionType
+  channel?:           InteractionChannel
+  status?:            InteractionStatus
+  subject?:           string
+  notes?:             string | null
+  internal_notes?:    string | null
+  outcome?:           string | null
+  follow_up_date?:    string | null
+  duration_minutes?:  number | null
+}
+
 export type CreateInteractionResponse = ApiResponse<Interaction>
 
 export interface InteractionListData {
@@ -63,6 +75,16 @@ export interface InteractionListParams {
   agent_id?:  string
   order_by?:  string
   order_dir?: 'asc' | 'desc'
+}
+
+export interface AuditEntry {
+  id:             string
+  interaction_id: string
+  edited_by:      string
+  edited_at:      string
+  field_name:     string
+  previous_value: string | null
+  new_value:      string | null
 }
 
 export interface ClientSummary {
