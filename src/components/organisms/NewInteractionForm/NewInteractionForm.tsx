@@ -3,6 +3,8 @@ import { useCreateInteraction } from '@hooks/mutations/useInteraction.mutation'
 import type { CreateInteractionPayload } from '@app-types/interaction.types'
 import styles from './NewInteractionForm.module.css'
 
+const SUBJECT_MAX_LENGTH = 200
+
 const INTERACTION_TYPES = [
   { value: 'call',    label: 'Llamada' },
   { value: 'email',   label: 'Correo' },
@@ -49,6 +51,7 @@ export const NewInteractionForm = ({ clientId, onSuccess, onCancel }: NewInterac
     const errors: Record<string, string> = {}
     if (!subject.trim()) errors.subject = 'El asunto es obligatorio'
     else if (subject.trim().length < 3) errors.subject = 'Mínimo 3 caracteres'
+    else if (subject.length > SUBJECT_MAX_LENGTH) errors.subject = `Máximo ${SUBJECT_MAX_LENGTH} caracteres`
     if (!description.trim()) errors.description = 'La descripción es obligatoria'
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
@@ -130,8 +133,14 @@ export const NewInteractionForm = ({ clientId, onSuccess, onCancel }: NewInterac
           type="text"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
+          maxLength={SUBJECT_MAX_LENGTH}
         />
-        {fieldErrors.subject && <span className={styles.error}>{fieldErrors.subject}</span>}
+        <div className={styles.charCounterRow}>
+          {fieldErrors.subject && <span className={styles.error}>{fieldErrors.subject}</span>}
+          <span className={`${styles.charCounter} ${subject.length > 180 ? styles.charWarning : ''}`}>
+            {subject.length}/{SUBJECT_MAX_LENGTH}
+          </span>
+        </div>
       </div>
 
       <div className={styles.field}>

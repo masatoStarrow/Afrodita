@@ -90,6 +90,23 @@
   color: var(--color-danger);
 }
 
+.charCounterRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.charCounter {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-left: auto;
+}
+
+.charWarning {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
 .actions {
   display: flex;
   justify-content: flex-end;
